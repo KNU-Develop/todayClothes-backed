@@ -1,38 +1,9 @@
 spring:
   profiles:
-    include: secret
-  jpa:
-    hibernate:
-      ddl-auto: create
-    show_sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect
-logging:
-  level:
-    org.springframework.security: DEBUG
-
-  profiles:
-    active: local
-    group:
-      local: local, common, secret
-      blue: blue, common, secret
-      green: green, common, secret
+    active: blue
 
 server:
   env: blue
-
----
-spring:
-  config:
-    activate:
-      on-profile: local
-
-server:
-  port: 8080
-  serverAddress: localhost
-  serverName: local_server
 
 ---
 spring:
@@ -49,17 +20,9 @@ server:
 spring:
   config:
     activate:
-      on-profile: green
-
-server:
-  port: 8081
-  serverAddress: 15.165.60.191
-  serverName: green_server
-
----
-
-spring:
-  config:
-    activate:
       on-profile: common
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
 
