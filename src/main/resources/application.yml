@@ -1,5 +1,19 @@
 spring:
   profiles:
+    include: secret
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show_sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+logging:
+  level:
+    org.springframework.security: DEBUG
+
+  profiles:
     active: local
     group:
       local: local, common, secret
@@ -48,7 +62,4 @@ spring:
   config:
     activate:
       on-profile: common
-  jpa:
-    hibernate:
-      ddl-auto: create
-    show-sql: true
+
