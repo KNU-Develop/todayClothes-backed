@@ -1,0 +1,9 @@
+= Today Clothes API
+
+Today Clothes Backend API Documentation
+
+== User API
+
+=== 모든 유저 정보 가져오기(rest docs 테스트)
+include::{snippets}/get-user/http-request.adoc[]
+include::{snippets}/get-user/http-response.adoc[]
