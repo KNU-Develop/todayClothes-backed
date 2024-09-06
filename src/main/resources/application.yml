@@ -36,4 +36,3 @@ spring:
   config:
     activate:
       on-profile: commons
-
