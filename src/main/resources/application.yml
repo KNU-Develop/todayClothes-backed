@@ -1,9 +1,24 @@
 spring:
   profiles:
-    active: blue
+    active: local
+    group:
+      local: local, common, secret
+      blue: blue, common, secret
+      green: blue, common, secret
 
 server:
   env: blue
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+server:
+  port: 8080
+  serverAddress: localhost
+  serverName: local_server
 
 ---
 spring:
@@ -20,7 +35,21 @@ server:
 spring:
   config:
     activate:
+      on-profile: local
+
+server:
+  port: 8081
+  serverAddress: 15.165.60.191
+  serverName: green_server
+
+---
+
+spring:
+  config:
+    activate:
       on-profile: common
+
+
   jpa:
     hibernate:
       ddl-auto: create
