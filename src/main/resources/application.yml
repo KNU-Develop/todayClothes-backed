@@ -35,4 +35,10 @@ server:
 spring:
   config:
     activate:
-      on-profile: commons
+      on-profile: common
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
