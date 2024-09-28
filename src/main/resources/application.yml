@@ -17,7 +17,7 @@ spring:
 server:
   port: 8080
   serverAddress: localhost
-  serverName: todayClothes
+  serverName: todayclothes
 
 ---
 spring:
@@ -27,7 +27,7 @@ spring:
 
 server:
   port: 8080
-  serverAddress: 3.34.19.120
+  serverAddress: 43.201.243.237
   serverName: blue_server
 
 ---
