@@ -17,7 +17,7 @@ spring:
 server:
   port: 8080
   serverAddress: localhost
-  serverName: local_server
+  serverName: todayClothes
 
 ---
 spring:
@@ -27,7 +27,7 @@ spring:
 
 server:
   port: 8080
-  serverAddress: 15.165.60.191
+  serverAddress: 3.34.19.120
   serverName: blue_server
 
 ---
@@ -35,4 +35,10 @@ server:
 spring:
   config:
     activate:
-      on-profile: commons
+      on-profile: common
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
