@@ -1,6 +1,5 @@
 package org.project.todayclothes.exception;
 
-import org.project.todayclothes.exception.CustomErrorResponse;
 import org.project.todayclothes.exception.code.ErrorCode;
 import org.project.todayclothes.util.ApiResponseUtil;
 import org.springframework.http.HttpStatus;
