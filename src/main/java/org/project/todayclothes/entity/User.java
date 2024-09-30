@@ -13,12 +13,13 @@ import lombok.NoArgsConstructor;
 public class User {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String userId;
     private String name;
-    private int age;
+    private String email;
+    private String role;
 
-    // getters and setters
-    public User(String name, int age) {
-        this.name = name;
-        this.age = age;
+    public User(String userId, String role) {
+        this.userId = userId;
+        this.role = role;
     }
 }

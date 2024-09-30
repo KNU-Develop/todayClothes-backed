@@ -36,3 +36,6 @@ spring:
   config:
     activate:
       on-profile: commons
+  jpa:
+    hibernate:
+      ddl-auto: create
