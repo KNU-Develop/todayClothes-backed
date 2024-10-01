@@ -2,8 +2,8 @@ spring:
   profiles:
     active: local
     group:
-      local: local, common, secret
-      blue: blue, common, secret
+      local: local, common, secret, aws
+      blue: blue, common, secret, aws
 
 server:
   env: blue
@@ -17,7 +17,7 @@ spring:
 server:
   port: 8080
   serverAddress: localhost
-  serverName: local_server
+  serverName: todayclothes
 
 ---
 spring:
@@ -27,7 +27,7 @@ spring:
 
 server:
   port: 8080
-  serverAddress: 15.165.60.191
+  serverAddress: 43.201.243.237
   serverName: blue_server
 
 ---
@@ -38,6 +38,9 @@ spring:
       on-profile: common
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
 #      naming:
 #        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
