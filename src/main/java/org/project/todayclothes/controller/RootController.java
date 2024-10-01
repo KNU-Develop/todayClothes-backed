@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 
 @Controller
-public class HealthCheckController {
-    @GetMapping({"/", "/env"})
+public class RootController {
+    @GetMapping({"", "/"})
     public String root() {
         return "index.html";
     }
