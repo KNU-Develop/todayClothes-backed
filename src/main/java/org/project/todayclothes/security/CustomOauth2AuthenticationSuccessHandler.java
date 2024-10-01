@@ -6,16 +6,20 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.project.todayclothes.dto.oauth2.CustomOAuth2User;
 import org.project.todayclothes.security.jwt.JWTUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -23,35 +27,35 @@ public class CustomOauth2AuthenticationSuccessHandler implements AuthenticationS
     private final JWTUtil jwtUtil;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
-        //유저 정보
-        String username = authentication.getName();
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        CustomOAuth2User customOAuth2User = (CustomOAuth2User) authentication.getPrincipal();
+        String socialId = customOAuth2User.getName();
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-        //토큰 생성
-        String access = jwtUtil.createJwt(JWTUtil.CATEGORY.ACCESS, username, role);
-        String refresh = jwtUtil.createJwt(JWTUtil.CATEGORY.REFRESH, username, role);
+        String accessToken = jwtUtil.createJwt(JWTUtil.CATEGORY.ACCESS, socialId, role);
+        String refreshToken = jwtUtil.createJwt(JWTUtil.CATEGORY.REFRESH, socialId, role);
 
-        //응답 설정
-        response.setHeader("access", access);
-        response.addCookie(createCookie("refresh", refresh));
+        response.setHeader("Authorization", "Bearer " + accessToken);
+        response.addCookie(createHttpOnlySecureCookie(refreshToken));
         response.setStatus(HttpStatus.OK.value());
+        response.sendRedirect(getRedirectUrl(request));
     }
 
-    @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-    }
-    private Cookie createCookie(String key, String value) {
-
-        Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(60*60*60);
+    private Cookie createHttpOnlySecureCookie(String refreshToken) {
+        Cookie cookie = new Cookie("refresh", refreshToken);
+        cookie.setMaxAge(7 * 24 * 60 * 60); // = refresh_expired_ms
         //cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         return cookie;
+    }
+
+    private String getRedirectUrl(HttpServletRequest request) {
+        System.out.println(request.getSession().getAttribute("redirect_uri").toString());
+        return request.getSession().getAttribute("redirect_uri").toString();
     }
 }

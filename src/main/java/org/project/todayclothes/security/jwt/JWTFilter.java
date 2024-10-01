@@ -6,7 +6,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.project.todayclothes.entity.User;
+import org.project.todayclothes.dto.oauth2.CustomOAuth2User;
+import org.project.todayclothes.dto.oauth2.Oauth2UserDto;
+import org.project.todayclothes.security.jwt.JWTUtil.CATEGORY;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,22 +17,19 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
     private final JWTUtil jwtUtil;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 헤더에서 access키에 담긴 토큰을 꺼냄
-        String accessToken = request.getHeader("access");
-
-        // 토큰이 불필요한 요청은 다음 필터로 넘김
+        String accessToken = getJwtFromAuthorizationHeader(request);
         if (accessToken == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
         try {
             jwtUtil.isExpired(accessToken);
         } catch (ExpiredJwtException e) {
@@ -45,9 +44,9 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         // 토큰이 access인지 확인 (발급시 페이로드에 명시)
-        String category = jwtUtil.getCategory(accessToken);
+        CATEGORY category = jwtUtil.getCategory(accessToken);
 
-        if (!category.equals("access")) {
+        if (category != CATEGORY.ACCESS) {
 
             //response body
             PrintWriter writer = response.getWriter();
@@ -58,17 +57,26 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
 
-        // username, role 값을 획득
-        String userId = jwtUtil.getUserId(accessToken);
+        String socialId = jwtUtil.getSocialId(accessToken);
         String role = jwtUtil.getRole(accessToken);
-
-        User user = new User(userId, role);
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
-
-        Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authToken);
-
+        SecurityContextHolder.getContext().setAuthentication(createAuthentication(new Oauth2UserDto(socialId, role)));
         filterChain.doFilter(request, response);
+    }
 
+    private String getJwtFromAuthorizationHeader(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);  // "Bearer " 부분을 제거하고 JWT만 반환
+        }
+        return null;
+    }
+
+    private Authentication createAuthentication(Oauth2UserDto oAuth2UserDto) {
+        CustomOAuth2User customOAuth2User = new CustomOAuth2User(oAuth2UserDto);
+        return new UsernamePasswordAuthenticationToken(
+                customOAuth2User,
+                null,
+                customOAuth2User.getAuthorities()
+        );
     }
 }

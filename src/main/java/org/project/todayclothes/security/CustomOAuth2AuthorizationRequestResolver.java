@@ -29,35 +29,29 @@ public class CustomOAuth2AuthorizationRequestResolver implements OAuth2Authoriza
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
         OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request);
-        return customizeAuthorizationRequest(authorizationRequest, request);
+        registeredRedirectUrl(authorizationRequest, request);
+        return authorizationRequest;
     }
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
         OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request, clientRegistrationId);
-        return customizeAuthorizationRequest(authorizationRequest, request);
+        registeredRedirectUrl(authorizationRequest, request);
+        return authorizationRequest;
     }
 
-    private OAuth2AuthorizationRequest customizeAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest, HttpServletRequest request) {
+    private void registeredRedirectUrl(OAuth2AuthorizationRequest authorizationRequest, HttpServletRequest request) {
         if (authorizationRequest == null) {
-            return null;
+            return;
         }
 
         String redirectUri = request.getParameter("redirect_uri");
-
-
         if (redirectUri == null || redirectUri.isEmpty()) {
             redirectUri = DEFAULT_REDIRECT_URI;
         } else if (!isValidRedirectUri(redirectUri)) {
             throw new IllegalArgumentException("Invalid redirect_uri: " + redirectUri);
         }
-
-        Map<String, Object> additionalParameters = new HashMap<>(authorizationRequest.getAdditionalParameters());
-        additionalParameters.put("redirect_uri", redirectUri);
-
-        return OAuth2AuthorizationRequest.from(authorizationRequest)
-                .additionalParameters(additionalParameters)
-                .build();
+        request.getSession().setAttribute("redirect_uri", redirectUri);
     }
 
     private boolean isValidRedirectUri(String redirectUri) {

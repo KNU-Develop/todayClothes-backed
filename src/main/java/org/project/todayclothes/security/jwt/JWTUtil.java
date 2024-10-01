@@ -15,23 +15,22 @@ public class JWTUtil {
 
     private final SecretKey secretKey;
     @Value("${spring.jwt.access_expired_ms}")
-    private static Long accessExpiredMs;
+    private Long accessExpiredMs;
 
     @Value("${spring.jwt.refresh_expired_ms}")
-    private static Long refreshExpiredMs;
+    private Long refreshExpiredMs;
 
     public JWTUtil(@Value("${spring.jwt.secret}") String secret) {
         this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 
-    public String getUserId(String token) {
+    public String getSocialId(String token) {
         return Jwts.parser().verifyWith(secretKey).build()
                 .parseSignedClaims(token)
                 .getPayload()
-                .get("userId", String.class);
+                .get("socialId", String.class);
     }
     public String getRole(String token) {
-
         return Jwts.parser().verifyWith(secretKey).build()
                 .parseSignedClaims(token)
                 .getPayload()
@@ -44,21 +43,21 @@ public class JWTUtil {
                 getExpiration().before(new Date());
     }
 
-    public String createJwt(CATEGORY category, String userId, String role) {
-        Long expiredMs = switch (category){
+    public String createJwt(CATEGORY category, String socialId, String role) {
+        Long expiredMs = switch (category) {
             case ACCESS -> accessExpiredMs;
             case REFRESH -> refreshExpiredMs;
         };
         return Jwts.builder()
                 .claim("category", category)
-                .claim("userId", userId)
+                .claim("socialId", socialId)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
                 .signWith(secretKey)
                 .compact();
     }
-    public String getCategory(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
+    public JWTUtil.CATEGORY getCategory(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", JWTUtil.CATEGORY.class);
     }
 }

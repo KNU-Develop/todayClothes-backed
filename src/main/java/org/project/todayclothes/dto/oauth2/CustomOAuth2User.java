@@ -1,5 +1,6 @@
 package org.project.todayclothes.dto.oauth2;
 
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
@@ -7,16 +8,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+@Getter
 public class CustomOAuth2User implements OAuth2User {
-    private final UserDTO userDTO;
+    private final Oauth2UserDto oauth2UserDto;
+    private final String role;
 
-    public CustomOAuth2User(UserDTO userDTO) {
-        this.userDTO = userDTO;
-    }
-
-    @Override
-    public <A> A getAttribute(String name) {
-        return OAuth2User.super.getAttribute(name);
+    public CustomOAuth2User(Oauth2UserDto oauth2UserDto) {
+        this.oauth2UserDto = oauth2UserDto;
+        this.role = oauth2UserDto.getRole();
     }
 
     @Override
@@ -30,7 +29,7 @@ public class CustomOAuth2User implements OAuth2User {
         collection.add(new GrantedAuthority() {
             @Override
             public String getAuthority() {
-                return userDTO.getRole();
+                return role;
             }
         });
         return collection;
@@ -38,10 +37,6 @@ public class CustomOAuth2User implements OAuth2User {
 
     @Override
     public String getName() {
-        return userDTO.getName();
-    }
-
-    public String getUserId() {
-        return userDTO.getUserId();
+        return oauth2UserDto.getSocialId();
     }
 }
