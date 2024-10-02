@@ -7,6 +7,8 @@ import org.project.todayclothes.security.CustomOauth2AuthenticationSuccessHandle
 import org.project.todayclothes.security.jwt.JWTFilter;
 import org.project.todayclothes.security.jwt.JWTUtil;
 import org.project.todayclothes.security.CustomOAuth2UserService;
+import org.project.todayclothes.security.jwt.RefreshRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,15 +22,18 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 
 @Configuration
-@EnableWebSecurity
+//@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOauth2AuthenticationSuccessHandler customOauth2AuthenticationSuccessHandler;
     private final JWTUtil jwtUtil;
+    @Value("${spring.jwt.allowed_redirect_uri_list}")
+    private List<String> allowedRedirectUriList;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, CustomOAuth2AuthorizationRequestResolver customOAuth2AuthorizationRequestResolver) throws Exception {
@@ -37,10 +42,10 @@ public class SecurityConfig {
                     @Override
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                         CorsConfiguration configuration = new CorsConfiguration();
-                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                        configuration.setAllowedOrigins(allowedRedirectUriList);
                         configuration.setAllowedMethods(Collections.singletonList("*"));
-                        configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
+                        configuration.setAllowCredentials(true);
                         configuration.setMaxAge(3600L);
 
                         // Expose multiple headers at once
@@ -49,14 +54,14 @@ public class SecurityConfig {
                         return configuration;
                     }
                 }));
-
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/", "/join").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()  // Allow static resources
+                        .requestMatchers("/","/env","/login").permitAll()
+                        .requestMatchers("index.html","/docs/index.html").permitAll()
+                        .requestMatchers("/reissue").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login((oauth2) -> oauth2
                         .authorizationEndpoint(authorizationEndpoint ->
@@ -66,7 +71,7 @@ public class SecurityConfig {
                                 .userService(customOAuth2UserService))
                         .successHandler(customOauth2AuthenticationSuccessHandler)
                 )
-                .addFilterBefore(jwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         http
                 .sessionManagement((session) -> session
@@ -75,8 +80,4 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public JWTFilter jwtFilter(JWTUtil jwtUtil) {
-        return new JWTFilter(jwtUtil);
-    }
 }

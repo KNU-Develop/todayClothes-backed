@@ -1,6 +1,7 @@
 package org.project.todayclothes.security.jwt;
 
 import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -42,7 +43,6 @@ public class JWTUtil {
                 getPayload().
                 getExpiration().before(new Date());
     }
-
     public String createJwt(CATEGORY category, String socialId, String role) {
         Long expiredMs = switch (category) {
             case ACCESS -> accessExpiredMs;
@@ -59,5 +59,13 @@ public class JWTUtil {
     }
     public JWTUtil.CATEGORY getCategory(String token) {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", JWTUtil.CATEGORY.class);
+    }
+    public Cookie createHttpOnlySecureCookie(String refreshToken) {
+        Cookie cookie = new Cookie("refresh", refreshToken);
+        cookie.setMaxAge((int) (refreshExpiredMs / 1000));
+        //cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        return cookie;
     }
 }
