@@ -19,8 +19,7 @@ import java.util.List;
 public class UserController {
     @GetMapping
     public List<User> getUsers() {
-        return Arrays.asList(new User("John", 30), new User("Jane", 25));
-
+        return null;
     }
 
     @GetMapping("/{id}")
