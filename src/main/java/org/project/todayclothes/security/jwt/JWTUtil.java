@@ -12,7 +12,8 @@ import java.util.Date;
 
 @Component
 public class JWTUtil {
-    public enum CATEGORY {ACCESS, REFRESH};
+    public final static String ACCESS = "ACCESS_TOKEN";
+    public final static String REFRESH = "REFRESH_TOKEN";
 
     private final SecretKey secretKey;
     @Value("${spring.jwt.access_expired_ms}")
@@ -38,16 +39,20 @@ public class JWTUtil {
                 .get("role", String.class);
     }
     public Boolean isExpired(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().
-                parseSignedClaims(token).
-                getPayload().
-                getExpiration().before(new Date());
+        return Jwts.parser().verifyWith(secretKey).build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getExpiration()
+                .before(new Date());
     }
-    public String createJwt(CATEGORY category, String socialId, String role) {
-        Long expiredMs = switch (category) {
-            case ACCESS -> accessExpiredMs;
-            case REFRESH -> refreshExpiredMs;
-        };
+    public String createJwt(String category, String socialId, String role) {
+        long expiredMs = 0;
+        if (category.equals(ACCESS)) {
+            expiredMs = accessExpiredMs;
+        } else if(category.equals(REFRESH)) {
+            expiredMs = refreshExpiredMs;
+        }
+
         return Jwts.builder()
                 .claim("category", category)
                 .claim("socialId", socialId)
@@ -57,8 +62,8 @@ public class JWTUtil {
                 .signWith(secretKey)
                 .compact();
     }
-    public JWTUtil.CATEGORY getCategory(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", JWTUtil.CATEGORY.class);
+    public String getCategory(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category").toString();
     }
     public Cookie createHttpOnlySecureCookie(String refreshToken) {
         Cookie cookie = new Cookie("refresh", refreshToken);
