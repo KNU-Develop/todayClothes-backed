@@ -21,7 +21,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
-//    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -41,8 +41,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         Oauth2UserDto oauth2UserDto = new Oauth2UserDto(oAuth2Response, "USER");
         CustomOAuth2User customOAuth2User = new CustomOAuth2User(oauth2UserDto);
 
-//        String encodeSocialId = encodeSocialId(customOAuth2User.getSocialId());
-        String encodeSocialId = customOAuth2User.getSocialId();
+        String encodeSocialId = encodeSocialId(customOAuth2User.getSocialId());
+//        String encodeSocialId = customOAuth2User.getSocialId();
 
         Optional<User> userOpt = userRepository.findBySocialId(encodeSocialId);
         if (userOpt.isPresent()) {
@@ -55,8 +55,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
         return customOAuth2User;
     }
-//
-//    public String encodeSocialId(String socialId) {
-//        return passwordEncoder.encode(socialId);
-//    }
+
+    public String encodeSocialId(String socialId) {
+        return passwordEncoder.encode(socialId);
+    }
 }
