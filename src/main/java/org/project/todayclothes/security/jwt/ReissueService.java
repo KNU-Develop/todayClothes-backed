@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import static org.project.todayclothes.security.jwt.JWTUtil.REFRESH;
@@ -28,7 +30,6 @@ public class ReissueService {
             return null;
         }
         for (Cookie cookie : cookies) {
-            System.out.println(cookie.getName());
             if (REFRESH_COOKIE_NAME.equals(cookie.getName())) {
                 return cookie.getValue();
             }
@@ -66,8 +67,8 @@ public class ReissueService {
     }
 
     public void addRefreshEntity(String socialId, String refreshToken) {
-        Date date = new Date(System.currentTimeMillis() + refreshExpiredMs);
-        RefreshEntity refreshEntity = new RefreshEntity(socialId, refreshToken, date.toString());
+        LocalDateTime dateTime = LocalDateTime.now().plus(refreshExpiredMs, ChronoUnit.MILLIS);
+        RefreshEntity refreshEntity = new RefreshEntity(socialId, refreshToken, dateTime);
         refreshRepository.save(refreshEntity);
     }
 
