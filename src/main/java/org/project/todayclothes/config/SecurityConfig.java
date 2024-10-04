@@ -2,6 +2,7 @@ package org.project.todayclothes.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.project.todayclothes.repository.UserRepository;
 import org.project.todayclothes.security.CustomOAuth2AuthorizationRequestResolver;
 import org.project.todayclothes.security.CustomOauth2AuthenticationSuccessHandler;
 import org.project.todayclothes.security.jwt.JWTFilter;
@@ -15,6 +16,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;

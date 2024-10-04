@@ -7,6 +7,8 @@ import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -15,9 +17,9 @@ public class RefreshEntity {
     private Long id;
     private String socialId;
     private String refreshToken;
-    private String expiresAt;
+    private LocalDateTime expiresAt;
 
-    public RefreshEntity(String socialId, String refreshToken, String expiresAt) {
+    public RefreshEntity(String socialId, String refreshToken, LocalDateTime expiresAt) {
         this.socialId = socialId;
         this.refreshToken = refreshToken;
         this.expiresAt = expiresAt;
