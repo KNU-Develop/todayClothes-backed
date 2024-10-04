@@ -2,8 +2,8 @@ spring:
   profiles:
     active: local
     group:
-      local: local, common, secret, aws
-      blue: blue, common, secret, aws
+      local: local, common, secret
+      blue: blue, common, secret
 
 server:
   env: blue
