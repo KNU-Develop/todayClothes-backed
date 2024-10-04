@@ -1,30 +1,24 @@
 package org.project.todayclothes.security;
 
-import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.project.todayclothes.dto.oauth2.CustomOAuth2User;
 import org.project.todayclothes.security.jwt.JWTUtil;
-import org.project.todayclothes.security.jwt.RefreshEntity;
-import org.project.todayclothes.security.jwt.RefreshRepository;
 import org.project.todayclothes.security.jwt.ReissueService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Iterator;
-import java.util.Map;
+
+import static org.project.todayclothes.security.jwt.JWTUtil.ACCESS;
+import static org.project.todayclothes.security.jwt.JWTUtil.REFRESH;
 
 @Component
 @RequiredArgsConstructor
@@ -42,8 +36,8 @@ public class CustomOauth2AuthenticationSuccessHandler implements AuthenticationS
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-        String accessToken = jwtUtil.createJwt(JWTUtil.CATEGORY.ACCESS, socialId, role);
-        String refreshToken = jwtUtil.createJwt(JWTUtil.CATEGORY.REFRESH, socialId, role);
+        String accessToken = jwtUtil.createJwt(ACCESS, socialId, role);
+        String refreshToken = jwtUtil.createJwt(REFRESH, socialId, role);
         reissueService.addRefreshEntity(socialId, refreshToken);
 
         response.setHeader("Authorization", "Bearer " + accessToken);
@@ -56,6 +50,4 @@ public class CustomOauth2AuthenticationSuccessHandler implements AuthenticationS
         System.out.println(request.getSession().getAttribute("redirect_uri").toString());
         return request.getSession().getAttribute("redirect_uri").toString();
     }
-
-
 }

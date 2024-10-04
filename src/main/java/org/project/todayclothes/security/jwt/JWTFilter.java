@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.project.todayclothes.dto.oauth2.CustomOAuth2User;
 import org.project.todayclothes.dto.oauth2.Oauth2UserDto;
-import org.project.todayclothes.security.jwt.JWTUtil.CATEGORY;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,16 +24,18 @@ public class JWTFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String accessToken = getJwtFromAuthorizationHeader(request);
+
+        if ("/reissue".equals(request.getRequestURI())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (accessToken == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        try {
-            jwtUtil.isExpired(accessToken);
-        } catch (ExpiredJwtException e) {
-
-            //response body
+        if (jwtUtil.isExpired(accessToken)) {
             PrintWriter writer = response.getWriter();
             writer.print("access token expired");
 
@@ -44,9 +45,9 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         // 토큰이 access인지 확인 (발급시 페이로드에 명시)
-        CATEGORY category = jwtUtil.getCategory(accessToken);
+        String category = jwtUtil.getCategory(accessToken);
 
-        if (category != CATEGORY.ACCESS) {
+        if (!category.equals(JWTUtil.ACCESS)) {
 
             //response body
             PrintWriter writer = response.getWriter();
