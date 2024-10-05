@@ -5,14 +5,14 @@ import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.project.todayclothes.security.jwt.JWTUtil.CATEGORY;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
-import static org.project.todayclothes.security.jwt.JWTUtil.CATEGORY.ACCESS;
-import static org.project.todayclothes.security.jwt.JWTUtil.CATEGORY.REFRESH;
+import static org.project.todayclothes.security.jwt.JWTUtil.REFRESH;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +30,6 @@ public class ReissueService {
             return null;
         }
         for (Cookie cookie : cookies) {
-            System.out.println(cookie.getName());
             if (REFRESH_COOKIE_NAME.equals(cookie.getName())) {
                 return cookie.getValue();
             }
@@ -40,19 +39,19 @@ public class ReissueService {
 
     public boolean validateRefreshToken(String refreshToken) {
         try {
-            jwtUtil.isExpired(refreshToken);
-            return true;
+            boolean tokenInWhiteList = refreshRepository.existsByRefreshToken(refreshToken);
+            return !jwtUtil.isExpired(refreshToken) && tokenInWhiteList;
         } catch (ExpiredJwtException e) {
             return false;
         }
     }
 
     public boolean isRefreshToken(String refreshToken) {
-        return jwtUtil.getCategory(refreshToken) == REFRESH;
+        return jwtUtil.getCategory(refreshToken).equals(REFRESH);
     }
 
     public String createAccessToken(String refreshToken) {
-        return createToken(refreshToken, ACCESS);
+        return createToken(refreshToken, JWTUtil.ACCESS);
     }
 
     public String createRefreshToken(String refreshToken) {
@@ -61,15 +60,15 @@ public class ReissueService {
         return newRefreshToken;
     }
 
-    private String createToken(String refreshToken, CATEGORY category) {
+    private String createToken(String refreshToken, String category) {
         String socialId = jwtUtil.getSocialId(refreshToken);
         String role = jwtUtil.getRole(refreshToken);
         return jwtUtil.createJwt(category, socialId, role);
     }
 
     public void addRefreshEntity(String socialId, String refreshToken) {
-        Date date = new Date(System.currentTimeMillis() + refreshExpiredMs);
-        RefreshEntity refreshEntity = new RefreshEntity(socialId, refreshToken, date.toString());
+        LocalDateTime dateTime = LocalDateTime.now().plus(refreshExpiredMs, ChronoUnit.MILLIS);
+        RefreshEntity refreshEntity = new RefreshEntity(socialId, refreshToken, dateTime);
         refreshRepository.save(refreshEntity);
     }
 

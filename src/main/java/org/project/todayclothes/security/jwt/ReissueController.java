@@ -35,7 +35,7 @@ public class ReissueController {
         String newAccessToken = reissueService.createAccessToken(refreshToken);
         String newRefreshToken = reissueService.createRefreshToken(refreshToken);
 
-        response.setHeader("access", newAccessToken);
+        response.setHeader("Authorization", "Bearer " + newAccessToken);
         response.addCookie(jwtUtil.createHttpOnlySecureCookie(newRefreshToken));
         return new ResponseEntity<>(HttpStatus.OK);
     }

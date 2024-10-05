@@ -21,18 +21,11 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Event> events;
-
-    public User(CustomOAuth2User customOAuth2User, String email) {
-        this.socialId = customOAuth2User.getName();
-        this.role = customOAuth2User.getRole();
-        this.email = email;
-    }
-
-    public User(String socialId, OAuth2Response oAuth2Response) {
+  
+    public User(String socialId, String email, String role) {
         this.socialId = socialId;
-        this.name = oAuth2Response.getName();
-        this.email = oAuth2Response.getEmail();
-        this.role = "USER";
+        this.email = email;
+        this.role = role;
     }
 
     public void authenticationInfoUpdate(OAuth2Response oAuth2Response) {
@@ -40,6 +33,7 @@ public class User {
             if (oAuth2Response.getEmail() != null && this.email.equals(oAuth2Response.getEmail())) {
                 this.email = oAuth2Response.getEmail();
             }
+            this.name = oAuth2Response.getName();
         }
     }
 }
