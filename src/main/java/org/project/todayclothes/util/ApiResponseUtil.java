@@ -17,11 +17,11 @@ public class ApiResponseUtil {
     }
 
     public static <T> ResponseEntity<Api_Response<T>> createSuccessResponse(String message, T result) {
-        return createResponse(HttpStatus.OK, message, result);
+        return createResponse(HttpStatus.OK, message, result);  // 200 OK 반환
     }
 
     public static <T> ResponseEntity<Api_Response<T>> createSuccessResponse(String message) {
-        return createResponse(HttpStatus.OK, message, null);
+        return createResponse(HttpStatus.OK, message, null);    // 200 OK 반환
     }
 
     public static <T> ResponseEntity<Api_Response<T>> createErrorResponse(ErrorCode errorCode) {

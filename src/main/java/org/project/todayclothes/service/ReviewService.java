@@ -3,7 +3,6 @@ package org.project.todayclothes.service;
 import lombok.RequiredArgsConstructor;
 import org.project.todayclothes.dto.ReviewReq;
 import org.project.todayclothes.entity.Review;
-import org.project.todayclothes.entity.User;
 import org.project.todayclothes.exception.CustomException;
 import org.project.todayclothes.exception.code.ReviewErrorCode;
 import org.project.todayclothes.exception.code.UserErrorCode;
@@ -23,7 +22,7 @@ public class ReviewService {
 
     @Transactional
     public Review createReview(Long userId, ReviewReq reviewReq, MultipartFile imageFile) {
-        User user = userRepository.findById(userId).orElseThrow(()-> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        userRepository.findById(userId).orElseThrow(()-> new CustomException(UserErrorCode.USER_NOT_FOUND));
         String imageUrl = s3UploadService.savePhoto(imageFile);
         Review review = new Review(reviewReq.getFeedback(), imageUrl);
         return reviewRepository.save(review);
@@ -31,14 +30,14 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public Review getReviewById(Long userId, Long reviewId) {
-        User user = userRepository.findById(userId).orElseThrow(()-> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        userRepository.findById(userId).orElseThrow(()-> new CustomException(UserErrorCode.USER_NOT_FOUND));
         return reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new CustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
     }
 
     @Transactional
     public Review updateReview(Long userId, Long reviewId, ReviewReq reviewReq, MultipartFile imageFile) {
-        User user = userRepository.findById(userId).orElseThrow(()-> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        userRepository.findById(userId).orElseThrow(()-> new CustomException(UserErrorCode.USER_NOT_FOUND));
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new CustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
@@ -49,7 +48,6 @@ public class ReviewService {
             String imageUrl = s3UploadService.savePhoto(imageFile);
             review.updateImageFile(imageUrl);
         }
-
         return reviewRepository.save(review);
     }
 

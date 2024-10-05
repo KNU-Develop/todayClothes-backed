@@ -27,7 +27,8 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public List<EventResDto> getAllEvents(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         return eventRepository.findAll().stream()
                 .map(this::convertToResDto)
                 .collect(Collectors.toList());
@@ -35,6 +36,8 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public EventResDto getEventById(Long userId, Long eventId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new CustomException(EventErrorCode.EVENT_NOT_FOUND));
         return convertToResDto(event);
@@ -42,7 +45,7 @@ public class EventService {
 
     @Transactional
     public EventResDto createEvent(Long userId, EventDto eventDto) {
-        User user = userRepository.findById(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         Weather weather = new Weather(eventDto);
         Event event = new Event(eventDto, weather);
@@ -54,12 +57,14 @@ public class EventService {
 
     @Transactional
     public void updateEvent(Long userId, Long eventId, EventDto eventDto) {
-        User user = userRepository.findById(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND));
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new CustomException(EventErrorCode.EVENT_NOT_FOUND));
+
+        event.updateWeather(eventDto);
         event.updateEvent(eventDto);
-        event.getWeather().updateWeather(eventDto);
+
         eventRepository.save(event);
     }
 

@@ -2,6 +2,7 @@ package org.project.todayclothes.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.project.todayclothes.dto.ReviewReq;
+import org.project.todayclothes.dto.oauth2.CustomOAuth2User;
 import org.project.todayclothes.exception.Api_Response;
 import org.project.todayclothes.exception.code.SuccessCode;
 import org.project.todayclothes.service.ReviewService;
@@ -20,25 +21,21 @@ public class ReviewController {
 
     @PostMapping
     public ResponseEntity<Api_Response<ReviewReq>> createReview(
-            @AuthenticationPrincipal Long userId,
-            @RequestBody ReviewReq reviewReq,
-            @RequestBody MultipartFile imageFile) {
+            @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
+            @RequestPart("reviewReq") ReviewReq reviewReq,
+            @RequestPart("imageFile") MultipartFile imageFile) {
+        Long userId = customOAuth2User.getUserId();
         reviewService.createReview(userId,reviewReq, imageFile);
-        return ApiResponseUtil.createSuccessResponse(SuccessCode.INSERT_SUCCESS.getCode());
-    }
-
-    @GetMapping("/{reviewId}")
-    public ResponseEntity<Api_Response<ReviewReq>> getReview(@AuthenticationPrincipal Long userId, @PathVariable Long reviewId) {
-        reviewService.getReviewById(userId,reviewId);
-        return ApiResponseUtil.createSuccessResponse(SuccessCode.SELECT_SUCCESS.getCode());
+        return ApiResponseUtil.createSuccessResponse(SuccessCode.INSERT_SUCCESS.getMessage());
     }
 
     @PutMapping("/{reviewId}")
     public ResponseEntity<Api_Response<ReviewReq>> updateReview(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @PathVariable Long reviewId,
-            @RequestBody ReviewReq reviewReq,
-            @RequestBody MultipartFile imageFile) {
+            @RequestPart("reviewReq") ReviewReq reviewReq,
+            @RequestPart("imageFile") MultipartFile imageFile) {
+        Long userId = customOAuth2User.getUserId();
         reviewService.updateReview(userId, reviewId, reviewReq, imageFile);
         return ApiResponseUtil.createSuccessResponse(SuccessCode.UPDATE_SUCCESS.getCode());
     }

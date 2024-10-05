@@ -1,15 +1,15 @@
 package org.project.todayclothes.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.project.todayclothes.entity.Event;
-import org.project.todayclothes.entity.Weather;
 import org.project.todayclothes.global.Style;
 import org.project.todayclothes.global.Type;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Builder
 @NoArgsConstructor
 public class EventDto {
 

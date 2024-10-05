@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.project.todayclothes.dto.EventDto;
+import org.project.todayclothes.exception.CustomException;
+import org.project.todayclothes.exception.code.EventErrorCode;
 import org.project.todayclothes.global.Style;
 import org.project.todayclothes.global.Type;
 
@@ -48,16 +50,21 @@ public class Event {
     }
 
     public void updateEvent(EventDto eventDto) {
+        if (eventDto == null){
+            throw new CustomException(EventErrorCode.EVENT_UPDATE_FAILED);
+        }
         this.startTime = eventDto.getStartTime();
         this.endTime = eventDto.getEndTime();
         this.location = eventDto.getLocation();
         this.type = eventDto.getType();
         this.style = eventDto.getStyle();
     }
-    public void updateImagePath(String imagePath) {
-        this.imagePath = imagePath;
-    }
-    public void updateComment(String comment) {
-        this.comment = comment;
+
+    public void updateWeather(EventDto eventDto) {
+        if (this.weather == null) {
+            this.weather = new Weather(eventDto);
+        } else {
+            this.weather.updateWeather(eventDto);
+        }
     }
 }

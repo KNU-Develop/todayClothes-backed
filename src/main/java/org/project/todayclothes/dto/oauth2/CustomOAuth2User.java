@@ -18,6 +18,10 @@ public class CustomOAuth2User implements OAuth2User {
         this.role = oauth2UserDto.getRole();
     }
 
+    public Long getUserId() {
+        return oauth2UserDto.getUserId();
+    }
+
     @Override
     public Map<String, Object> getAttributes() {
         return null;
