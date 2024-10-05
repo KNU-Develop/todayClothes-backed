@@ -47,6 +47,20 @@ public class S3UploadService {
         return amazonS3Client.getUrl(bucket, fileName).toString(); // 업로드된 파일 URL 반환
     }
 
+    public void deletePhoto(String imageUrl) {
+        String fileName = extractFileNameFromUrl(imageUrl);
+
+        try {
+            amazonS3Client.deleteObject(bucket, fileName);
+        } catch (Exception e) {
+            throw new CustomException(ReviewErrorCode.S3_DELETE_FAILED);
+        }
+    }
+
+    private String extractFileNameFromUrl(String imageUrl) {
+        return imageUrl.substring(imageUrl.indexOf(CLOTHES_IMG_DIR));
+    }
+
     private void validateFile(MultipartFile multipartFile) {
         if (multipartFile.getSize() > MAX_FILE_SIZE) {
             throw new CustomException(ReviewErrorCode.FILE_SIZE_EXCEEDED);

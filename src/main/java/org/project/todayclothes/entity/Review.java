@@ -1,9 +1,6 @@
 package org.project.todayclothes.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.project.todayclothes.global.Feedback;
@@ -14,13 +11,14 @@ import org.project.todayclothes.global.Feedback;
 @NoArgsConstructor
 public class Review {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Feedback feedback;
     private String imageFile;
 
-    public Review(Long id, Feedback feedback, String imageFile) {
-        this.id = id;
+    public Review(Feedback feedback, String imageFile) {
         this.feedback = feedback;
         this.imageFile = imageFile;
     }

@@ -1,13 +1,12 @@
 package org.project.todayclothes.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.project.todayclothes.dto.oauth2.CustomOAuth2User;
 import org.project.todayclothes.dto.oauth2.OAuth2Response;
+
+import java.util.List;
 
 @Entity
 @Getter
@@ -20,6 +19,9 @@ public class User {
     private String email;
     private String role;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Event> events;
+  
     public User(String socialId, String email, String role) {
         this.socialId = socialId;
         this.email = email;

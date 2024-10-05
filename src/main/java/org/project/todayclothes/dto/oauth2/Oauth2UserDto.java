@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public class Oauth2UserDto {
+    private Long userId;
     private String socialId;
     private String name;
     private String role;
