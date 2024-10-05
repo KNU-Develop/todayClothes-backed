@@ -19,14 +19,13 @@ import java.util.List;
 public class UserController {
     @GetMapping
     public List<User> getUsers() {
-        return Arrays.asList(new User("John", 30), new User("Jane", 25));
-
+        return null;
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getUser(@PathVariable Long id) {
         if (id == 1L) {
-            return ApiResponseUtil.createSuccessResponse("User found", "John Doe");
+            return ApiResponseUtil.createSuccessResponse("John Doe");
         } else {
             throw new CustomException(UserErrorCode.USER_NOT_FOUND);
         }

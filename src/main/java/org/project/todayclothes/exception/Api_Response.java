@@ -1,4 +1,4 @@
-package org.project.todayclothes.exception.code;
+package org.project.todayclothes.exception;
 
 import lombok.Builder;
 import lombok.Getter;
