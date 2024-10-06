@@ -88,7 +88,9 @@ jobs:
           script_stop: true
           script: |
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}:latest
-            sudo docker-compose -f docker-compose.yml up -d
+            echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" > .env
+            sudo docker-compose --env-file .env -f docker-compose.yml up -d
+
             
       - name: Check Deploy Server URL
         uses: jtalk/url-health-check-action@v3
