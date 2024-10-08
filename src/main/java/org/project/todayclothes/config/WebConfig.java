@@ -13,9 +13,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:3000",
                         "https://todayclothes.store",
                         "https://todayclothes.vercel.app")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("Authorization", "Content-Type")
-                .exposedHeaders("Authorization", "Custom-Header")
+                .allowedMethods("*")
+                .allowedHeaders("*")
                 .allowCredentials(true)
                 .maxAge(3600);
     }
