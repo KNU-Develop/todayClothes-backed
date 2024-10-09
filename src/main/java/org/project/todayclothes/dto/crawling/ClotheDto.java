@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.project.todayclothes.global.Category;
 
-@Setter
+@Getter
 public class ClotheDto {
     private String name;
     private Integer price;
@@ -25,7 +25,7 @@ public class ClotheDto {
     }
 
     @Override
-    public String toString() {
+    public String toString() { // for test
         return "ClotheDto{" +
                 "name='" + name + '\'' +
                 ", price=" + price +
