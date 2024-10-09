@@ -72,11 +72,11 @@ jobs:
           host: ${{ secrets.LIVE_SERVER_IP }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            if sudo docker ps -a --format '{{.Names}}' | grep -q "^backendServer"; then
-              sudo docker stop backendServer
-              sudo docker rm backendServer
+            if sudo docker ps -a --format '{{.Names}}' | grep -q "^main-server"; then
+              sudo docker stop main-server
+              sudo docker rm main-server
             else
-              echo "Container backendServer does not exist. Skipping stop and remove."
+              echo "Container main-server does not exist. Skipping stop and remove."
             fi
 
       - name: Pull and Deploy Docker Image
