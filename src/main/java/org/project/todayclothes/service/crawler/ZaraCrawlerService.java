@@ -54,7 +54,8 @@ public class ZaraCrawlerService {
 
     private final ClotheRepository clotheRepository;
 
-    @EventListener(ApplicationReadyEvent.class)
+    // @EventListener(ApplicationReadyEvent.class)
+    @Scheduled(cron = "0 0 0 * * 0")
     @Transactional
     public void crawlingProductHeader() throws MalformedURLException {
         System.setProperty("webdriver.chrome.driver", DEV_CHROME_DRIVER_PATH);
@@ -68,12 +69,12 @@ public class ZaraCrawlerService {
 
         List<ClotheDto> clotheDtoList = new ArrayList<>();
         crawlingByCategory(TOP, driver, clotheDtoList);
-//        crawlingByCategory(PANTS, driver, clotheDtoList);
-//        crawlingByCategory(BEANIE, driver, clotheDtoList);
-//        crawlingByCategory(CAP, driver, clotheDtoList);
-//        crawlingByCategory(SUNGLASSES, driver, clotheDtoList);
-//        crawlingByCategory(SHOES, driver, clotheDtoList);
-//        crawlingByCategory(OUTER, driver, clotheDtoList);
+       crawlingByCategory(PANTS, driver, clotheDtoList);
+       crawlingByCategory(BEANIE, driver, clotheDtoList);
+       crawlingByCategory(CAP, driver, clotheDtoList);
+       crawlingByCategory(SUNGLASSES, driver, clotheDtoList);
+       crawlingByCategory(SHOES, driver, clotheDtoList);
+       crawlingByCategory(OUTER, driver, clotheDtoList);
 
 
         for (ClotheDto clotheDto : clotheDtoList) {
