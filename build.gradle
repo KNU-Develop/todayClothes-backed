@@ -49,8 +49,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     testImplementation 'org.springframework.security:spring-security-test'
-    //aws
+
+    // AWS
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+    // Crawling - Selenium
+    implementation 'org.seleniumhq.selenium:selenium-java:4.12.1'
+
 }
 
 ext {
