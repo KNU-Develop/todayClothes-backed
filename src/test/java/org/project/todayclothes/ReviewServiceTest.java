@@ -1,19 +1,25 @@
-package org.project.todayclothes;
+package org.project.todayclothes.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.project.todayclothes.dto.ReviewReq;
 import org.project.todayclothes.entity.Review;
+import org.project.todayclothes.entity.User;
+import org.project.todayclothes.exception.BusinessException;
+import org.project.todayclothes.exception.code.ReviewErrorCode;
+import org.project.todayclothes.exception.code.UserErrorCode;
 import org.project.todayclothes.global.Feedback;
 import org.project.todayclothes.repository.ReviewRepository;
-import org.project.todayclothes.service.ReviewService;
-import org.project.todayclothes.service.S3UploadService;
+import org.project.todayclothes.repository.UserRepository;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class ReviewServiceTest {
@@ -25,90 +31,116 @@ class ReviewServiceTest {
     private ReviewRepository reviewRepository;
 
     @Mock
+    private UserRepository userRepository;
+
+    @Mock
     private S3UploadService s3UploadService;
+
+    @Mock
+    private MultipartFile multipartFile;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
+    // 1. 정상적으로 리뷰가 생성되는 경우
     @Test
-    void createReview() {
+    void createReview_Success() {
 
-        String imageUrl = "https://s3.amazonaws.com/test-image.jpg";
-        Feedback feedback = Feedback.PERFECT;
-        when(s3UploadService.savePhoto(any())).thenReturn(imageUrl);
+        Long userId = 1L;
+        ReviewReq reviewReq = new ReviewReq(Feedback.PERFECT);
+        User user = new User("userId", "email@example.com", "USER_ROLE");
 
-        Review review = new Review(1L, feedback, imageUrl);
-        when(reviewRepository.save(any(Review.class))).thenReturn(review);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(s3UploadService.savePhoto(any(MultipartFile.class))).thenReturn("image-url");
 
-        Review result = reviewService.createReview(feedback, null);
+        Review savedReview = new Review(Feedback.PERFECT, "image-url");
+        when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
+
+        Review result = reviewService.createReview(userId, reviewReq, multipartFile);
 
         assertNotNull(result);
-        assertEquals(feedback, result.getFeedback());
-        assertEquals(imageUrl, result.getImageFile());
-        verify(s3UploadService, times(1)).savePhoto(any());
-        verify(reviewRepository, times(1)).save(any(Review.class));
+        assertEquals(Feedback.PERFECT, result.getFeedback());
+        assertEquals("image-url", result.getImageFile());
+        verify(userRepository).findById(userId);
+        verify(reviewRepository).save(any(Review.class));
+        verify(s3UploadService).savePhoto(any(MultipartFile.class));
     }
 
+    // 2. 유저가 없을 때 예외 발생
     @Test
-    void getReviewById() {
-        Long reviewId = 1L;
-        Feedback feedback = Feedback.PERFECT;
-        String imageUrl = "https://s3.amazonaws.com/test-image.jpg";
-        Review review = new Review(reviewId, feedback, imageUrl);
-        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
+    void createReview_UserNotFound_Exception() {
+        Long userId = 1L;
+        ReviewReq reviewReq = new ReviewReq(Feedback.PERFECT);
 
-        Review result = reviewService.getReviewById(reviewId);
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            reviewService.createReview(userId, reviewReq, null);
+        });
 
-        assertNotNull(result);
-        assertEquals(feedback, result.getFeedback());
-        assertEquals(imageUrl, result.getImageFile());
-        verify(reviewRepository, times(1)).findById(reviewId);
+        assertEquals(UserErrorCode.USER_NOT_FOUND, exception.getErrorCode());
+        verify(userRepository).findById(userId);
     }
 
+    // 3. 잘못된 Feedback Enum이 들어왔을 때 예외 발생
     @Test
-    void updateReview() {
+    void createReview_InvalidFeedback_Exception() {
+        Long userId = 1L;
+        ReviewReq reviewReq = new ReviewReq(null); // 잘못된 피드백 (null)
+        User user = new User("userId", "email@example.com", "USER_ROLE");
 
-        Long reviewId = 1L;
-        Feedback oldFeedback = Feedback.HOT;
-        Feedback newFeedback = Feedback.PERFECT;
-        String oldImageUrl = "https://s3.amazonaws.com/old-image.jpg";
-        String newImageUrl = "https://s3.amazonaws.com/new-image.jpg";
-        Review review = new Review(reviewId, oldFeedback, oldImageUrl);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
-        when(s3UploadService.savePhoto(any())).thenReturn(newImageUrl);
-        when(reviewRepository.save(any(Review.class))).thenReturn(review);
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            reviewService.createReview(userId, reviewReq, null);
+        });
 
-        Review updatedReview = reviewService.updateReview(reviewId, newFeedback, null);
-
-        assertNotNull(updatedReview);
-        assertEquals(newFeedback, updatedReview.getFeedback());
-        assertEquals(oldImageUrl, updatedReview.getImageFile()); // 이미지 파일이 null이므로 기존 URL 유지
-        verify(reviewRepository, times(1)).findById(reviewId);
-        verify(reviewRepository, times(1)).save(any(Review.class));
+        assertEquals(ReviewErrorCode.INVALID_FEEDBACK_ENUM, exception.getErrorCode());
+        verify(userRepository).findById(userId);
     }
 
+    // 4. 정상적으로 리뷰가 업데이트되는 경우
     @Test
-    void updateReviewWithImage() {
+    void updateReview_Success() {
+
+        Long userId = 1L;
         Long reviewId = 1L;
-        Feedback feedback = Feedback.PERFECT;
-        String oldImageUrl = "https://s3.amazonaws.com/old-image.jpg";
-        String newImageUrl = "https://s3.amazonaws.com/new-image.jpg";
-        Review review = new Review(reviewId, feedback, oldImageUrl);
+        ReviewReq reviewReq = new ReviewReq(Feedback.COLD);
+        User user = new User("socialId", "email@example.com", "USER_ROLE");
+        Review existingReview = new Review(Feedback.PERFECT, "old-image-url");
 
-        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
-        when(s3UploadService.savePhoto(any())).thenReturn(newImageUrl);
-        when(reviewRepository.save(any(Review.class))).thenReturn(review);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(existingReview));
+        when(s3UploadService.savePhoto(any(MultipartFile.class))).thenReturn("new-image-url");
 
-        Review updatedReview = reviewService.updateReview(reviewId, feedback, null);
+        reviewService.updateReview(userId, reviewId, reviewReq, multipartFile);
 
-        assertNotNull(updatedReview);
-        assertEquals(feedback, updatedReview.getFeedback());
-        assertEquals(oldImageUrl, updatedReview.getImageFile());
-        verify(reviewRepository, times(1)).findById(reviewId);
-        verify(reviewRepository, times(1)).save(any(Review.class));
+        assertEquals(Feedback.COLD, existingReview.getFeedback());
+        assertEquals("new-image-url", existingReview.getImageFile());
+        verify(userRepository).findById(userId);
+        verify(reviewRepository).findById(reviewId);
+        verify(s3UploadService).savePhoto(any(MultipartFile.class));
+    }
+
+    // 5. 리뷰가 없을 때 예외 발생
+    @Test
+    void updateReview_ReviewNotFound_Exception() {
+
+        Long userId = 1L;
+        Long reviewId = 1L;
+        ReviewReq reviewReq = new ReviewReq(Feedback.PERFECT);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User("userId", "email@example.com", "USER_ROLE")));
+        when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty());
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            reviewService.updateReview(userId, reviewId, reviewReq, null);
+        });
+
+        assertEquals(ReviewErrorCode.REVIEW_NOT_FOUND, exception.getErrorCode());
+        verify(userRepository).findById(userId);
+        verify(reviewRepository).findById(reviewId);
     }
 }

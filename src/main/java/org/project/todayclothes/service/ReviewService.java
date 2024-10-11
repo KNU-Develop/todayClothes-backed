@@ -3,9 +3,10 @@ package org.project.todayclothes.service;
 import lombok.RequiredArgsConstructor;
 import org.project.todayclothes.dto.ReviewReq;
 import org.project.todayclothes.entity.Review;
-import org.project.todayclothes.exception.CustomException;
+import org.project.todayclothes.exception.BusinessException;
 import org.project.todayclothes.exception.code.ReviewErrorCode;
 import org.project.todayclothes.exception.code.UserErrorCode;
+import org.project.todayclothes.global.Feedback;
 import org.project.todayclothes.repository.ReviewRepository;
 import org.project.todayclothes.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -22,25 +23,26 @@ public class ReviewService {
 
     @Transactional
     public Review createReview(Long userId, ReviewReq reviewReq, MultipartFile imageFile) {
-        userRepository.findById(userId).orElseThrow(()-> new CustomException(UserErrorCode.USER_NOT_FOUND));
-        String imageUrl = s3UploadService.savePhoto(imageFile);
+        String imageUrl = null;
+        userRepository.findById(userId).orElseThrow(()-> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+        if (!Feedback.isValid(String.valueOf(reviewReq.getFeedback()))) {
+            throw new BusinessException(ReviewErrorCode.INVALID_FEEDBACK_ENUM);
+        }
+        if (imageFile != null && !imageFile.isEmpty()) {
+            imageUrl = s3UploadService.savePhoto(imageFile);
+        }
         Review review = new Review(reviewReq.getFeedback(), imageUrl);
         return reviewRepository.save(review);
     }
 
-    @Transactional(readOnly = true)
-    public Review getReviewById(Long userId, Long reviewId) {
-        userRepository.findById(userId).orElseThrow(()-> new CustomException(UserErrorCode.USER_NOT_FOUND));
-        return reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new CustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
-    }
-
     @Transactional
     public Review updateReview(Long userId, Long reviewId, ReviewReq reviewReq, MultipartFile imageFile) {
-        userRepository.findById(userId).orElseThrow(()-> new CustomException(UserErrorCode.USER_NOT_FOUND));
+        userRepository.findById(userId).orElseThrow(()-> new BusinessException(UserErrorCode.USER_NOT_FOUND));
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new CustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
-
+                .orElseThrow(() -> new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND));
+        if (!Feedback.isValid(String.valueOf(reviewReq.getFeedback()))) {
+            throw new BusinessException(ReviewErrorCode.INVALID_FEEDBACK_ENUM);
+        }
         review.updateFeedback(reviewReq.getFeedback());
 
         if (imageFile != null && !imageFile.isEmpty()) {
