@@ -79,7 +79,7 @@ public class JWTUtil {
     public Cookie createHttpOnlySecureCookie(String refreshToken) {
         Cookie cookie = new Cookie("refresh", refreshToken);
         cookie.setMaxAge((int) (refreshExpiredMs / 1000));
-        //cookie.setSecure(true);
+        cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         return cookie;
