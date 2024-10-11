@@ -38,7 +38,8 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         if (accessToken == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            // response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            filterChain.doFilter(request, response);
             return;
         }
 
