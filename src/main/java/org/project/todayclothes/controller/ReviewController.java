@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/review")
+@RequestMapping("/clothes/review")
 @RequiredArgsConstructor
 public class ReviewController {
 
@@ -22,8 +22,8 @@ public class ReviewController {
     @PostMapping
     public ResponseEntity<Api_Response<ReviewReq>> createReview(
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
-            @RequestPart("reviewReq") ReviewReq reviewReq,
-            @RequestPart("imageFile") MultipartFile imageFile) {
+            @RequestPart(value = "reviewReq") ReviewReq reviewReq,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
         Long userId = customOAuth2User.getUserId();
         reviewService.createReview(userId,reviewReq, imageFile);
         return ApiResponseUtil.createSuccessResponse(SuccessCode.INSERT_SUCCESS.getMessage());
@@ -33,8 +33,8 @@ public class ReviewController {
     public ResponseEntity<Api_Response<ReviewReq>> updateReview(
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @PathVariable Long reviewId,
-            @RequestPart("reviewReq") ReviewReq reviewReq,
-            @RequestPart("imageFile") MultipartFile imageFile) {
+            @RequestPart(value = "reviewReq") ReviewReq reviewReq,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
         Long userId = customOAuth2User.getUserId();
         reviewService.updateReview(userId, reviewId, reviewReq, imageFile);
         return ApiResponseUtil.createSuccessResponse(SuccessCode.UPDATE_SUCCESS.getCode());

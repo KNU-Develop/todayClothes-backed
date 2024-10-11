@@ -6,7 +6,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.project.todayclothes.exception.CustomException;
+import org.project.todayclothes.exception.BusinessException;
 import org.project.todayclothes.exception.code.ReviewErrorCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,7 @@ public class S3UploadService {
             amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, multipartFile.getInputStream(), metadata)
                     .withCannedAcl(CannedAccessControlList.PublicRead));
         } catch (IOException e) {
-            throw new CustomException(ReviewErrorCode.S3_UPLOAD_FAILED);
+            throw new BusinessException(ReviewErrorCode.S3_UPLOAD_FAILED);
         }
 
         return amazonS3Client.getUrl(bucket, fileName).toString(); // 업로드된 파일 URL 반환
@@ -53,7 +53,7 @@ public class S3UploadService {
         try {
             amazonS3Client.deleteObject(bucket, fileName);
         } catch (Exception e) {
-            throw new CustomException(ReviewErrorCode.S3_DELETE_FAILED);
+            throw new BusinessException(ReviewErrorCode.S3_DELETE_FAILED);
         }
     }
 
@@ -63,11 +63,11 @@ public class S3UploadService {
 
     private void validateFile(MultipartFile multipartFile) {
         if (multipartFile.getSize() > MAX_FILE_SIZE) {
-            throw new CustomException(ReviewErrorCode.FILE_SIZE_EXCEEDED);
+            throw new BusinessException(ReviewErrorCode.FILE_SIZE_EXCEEDED);
         }
 
         if (!multipartFile.getContentType().startsWith("image/")) {
-            throw new CustomException(ReviewErrorCode.INVALID_FILE_FORMAT);
+            throw new BusinessException(ReviewErrorCode.INVALID_FILE_FORMAT);
         }
     }
 }

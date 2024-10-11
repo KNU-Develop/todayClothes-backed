@@ -24,4 +24,8 @@ public class RefreshEntity {
         this.refreshToken = refreshToken;
         this.expiresAt = expiresAt;
     }
+    public void update(String refreshToken, LocalDateTime expiresAt) {
+        this.refreshToken = refreshToken;
+        this.expiresAt = expiresAt;
+    }
 }

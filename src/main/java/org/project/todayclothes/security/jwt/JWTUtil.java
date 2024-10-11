@@ -81,7 +81,7 @@ public class JWTUtil {
         cookie.setMaxAge((int) (refreshExpiredMs / 1000));
         // cookie.setSecure(true);
         cookie.setPath("/");
-        // cookie.setHttpOnly(true);
+        cookie.setHttpOnly(true);
         return cookie;
     }
     private SecretKey getSecretKey(String token){

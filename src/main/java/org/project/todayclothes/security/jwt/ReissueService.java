@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Optional;
 
 import static org.project.todayclothes.security.jwt.JWTUtil.REFRESH;
 
@@ -68,8 +69,15 @@ public class ReissueService {
 
     public void addRefreshEntity(String socialId, String refreshToken) {
         LocalDateTime dateTime = LocalDateTime.now().plus(refreshExpiredMs, ChronoUnit.MILLIS);
-        RefreshEntity refreshEntity = new RefreshEntity(socialId, refreshToken, dateTime);
-        refreshRepository.save(refreshEntity);
+//        RefreshEntity refreshEntity = new RefreshEntity(socialId, refreshToken, dateTime);
+        Optional<RefreshEntity> optRefreshEntity = refreshRepository.findBySocialId(socialId);
+        if (optRefreshEntity.isPresent()) {
+            RefreshEntity refreshEntity = optRefreshEntity.get();
+            refreshEntity.update(refreshToken, dateTime);
+            refreshRepository.save(refreshEntity);
+        }else {
+            refreshRepository.save(new RefreshEntity(socialId, refreshToken, dateTime));
+        }
     }
 
     private void replaceRefreshToken(String refreshToken, String newRefreshToken) {

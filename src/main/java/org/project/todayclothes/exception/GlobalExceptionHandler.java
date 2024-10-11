@@ -10,16 +10,16 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(CustomException.class)
-    public ResponseEntity<?> handleCustomException(CustomException ex) {
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<?> handleCustomException(BusinessException ex) {
         ErrorCode errorCode = ex.getErrorCode();
         return ApiResponseUtil.createErrorResponse(errorCode);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGeneralException(Exception ex) {
-        if (ex instanceof CustomException) {
-            ErrorCode errorCode = ((CustomException) ex).getErrorCode();
+        if (ex instanceof BusinessException) {
+            ErrorCode errorCode = ((BusinessException) ex).getErrorCode();
             return ApiResponseUtil.createErrorResponse(errorCode);
         } else {
             return ApiResponseUtil.createErrorResponse("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR.value());

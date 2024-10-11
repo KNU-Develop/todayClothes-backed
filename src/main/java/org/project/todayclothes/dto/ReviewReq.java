@@ -12,9 +12,8 @@ public class ReviewReq {
     private Feedback feedback;
     private String imageFile;
 
-    public ReviewReq(Feedback feedback, String imageFile) {
+    public ReviewReq(Feedback feedback) {
         this.feedback = feedback;
-        this.imageFile = imageFile;
     }
 
 }

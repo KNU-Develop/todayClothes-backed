@@ -14,6 +14,8 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -43,15 +45,18 @@ public class CustomOauth2AuthenticationSuccessHandler implements AuthenticationS
         String refreshToken = jwtUtil.createJwt(REFRESH, socialId, role);
         reissueService.addRefreshEntity(socialId, refreshToken);
 
-//        response.setHeader("Access-Control-Expose-Headers", "Authorization");
         response.setHeader("Authorization", "Bearer " + accessToken);
         response.addCookie(jwtUtil.createHttpOnlySecureCookie(refreshToken));
         response.setStatus(HttpStatus.OK.value());
-        response.sendRedirect(getRedirectUrl(request));
+        String redirectUrl = String.format("%s?accessToken=%s&refreshToken=%s",
+                getRedirectUrl(request),
+                URLEncoder.encode(accessToken, StandardCharsets.UTF_8),
+                URLEncoder.encode(refreshToken, StandardCharsets.UTF_8));
+        response.sendRedirect(redirectUrl);
     }
 
     private String getRedirectUrl(HttpServletRequest request) {
-        System.out.println(request.getSession().getAttribute("redirect_uri").toString());
+//        System.out.println(request.getSession().getAttribute("redirect_uri").toString());
         return request.getSession().getAttribute("redirect_uri").toString();
     }
 }
