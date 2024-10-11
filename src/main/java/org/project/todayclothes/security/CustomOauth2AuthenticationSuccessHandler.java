@@ -28,6 +28,9 @@ public class CustomOauth2AuthenticationSuccessHandler implements AuthenticationS
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+
+        System.out.println(request.getHeader("Referer"));
+
         CustomOAuth2User customOAuth2User = (CustomOAuth2User) authentication.getPrincipal();
         String socialId = customOAuth2User.getSocialId();
 
@@ -40,6 +43,7 @@ public class CustomOauth2AuthenticationSuccessHandler implements AuthenticationS
         String refreshToken = jwtUtil.createJwt(REFRESH, socialId, role);
         reissueService.addRefreshEntity(socialId, refreshToken);
 
+//        response.setHeader("Access-Control-Expose-Headers", "Authorization");
         response.setHeader("Authorization", "Bearer " + accessToken);
         response.addCookie(jwtUtil.createHttpOnlySecureCookie(refreshToken));
         response.setStatus(HttpStatus.OK.value());

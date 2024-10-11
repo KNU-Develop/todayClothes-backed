@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.project.todayclothes.dto.oauth2.CustomOAuth2User;
 import org.project.todayclothes.dto.oauth2.Oauth2UserDto;
+import org.project.todayclothes.exception.code.CommonErrorCode;
+import org.project.todayclothes.util.ApiResponseUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,31 +17,32 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Set;
 
 
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
     private final JWTUtil jwtUtil;
 
+    private final Set<String> permitAllPaths = Set.of(
+            "/", "/env", "/login", "/index.html", "/docs/index.html", "/reissue"
+    );
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String accessToken = getJwtFromAuthorizationHeader(request);
 
-        if ("/reissue".equals(request.getRequestURI())) {
+        if (permitAllPaths.contains(request.getRequestURI())) {
             filterChain.doFilter(request, response);
             return;
         }
 
         if (accessToken == null) {
-            filterChain.doFilter(request, response);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
         if (jwtUtil.isExpired(accessToken)) {
-            PrintWriter writer = response.getWriter();
-            writer.print("access token expired");
-
-            //response status code
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
