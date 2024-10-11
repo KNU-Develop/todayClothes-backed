@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 public enum CommonErrorCode implements ErrorCode {
     // 인증 관련 에러
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
+    NOT_HAVE_ACCESS_TOKEN(HttpStatus.BAD_REQUEST, "엑세스 토큰이 없습니다."),
     NOT_VALID_TOKEN(HttpStatus.UNAUTHORIZED, "해당 토큰은 유효한 토큰이 아닙니다."),
     NOT_EXISTS_AUTHORIZATION(HttpStatus.UNAUTHORIZED, "Authorization Header가 빈 값입니다."),
     NOT_VALID_BEARER_GRANT_TYPE(HttpStatus.UNAUTHORIZED, "인증 타입이 Bearer 타입이 아닙니다."),
