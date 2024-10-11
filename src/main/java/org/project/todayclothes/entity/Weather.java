@@ -6,7 +6,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.project.todayclothes.dto.EventDto;
+import org.project.todayclothes.dto.EventReqDto;
+import org.project.todayclothes.exception.BusinessException;
+import org.project.todayclothes.exception.code.EventErrorCode;
 
 @Entity
 @Getter
@@ -22,20 +24,23 @@ public class Weather {
     private double humidity;
     private double feelsLike;
 
-    public Weather(EventDto eventDto) {
-        this.weather = eventDto.getWeather();
-        this.temp = eventDto.getTemp();
-        this.rain = eventDto.getRain();
-        this.wind = eventDto.getWind();
-        this.humidity = eventDto.getHumidity();
-        this.feelsLike = eventDto.getFeelsLike();
+    public Weather(EventReqDto eventReqDto) {
+        this.weather = eventReqDto.getWeather();
+        this.temp = eventReqDto.getTemp();
+        this.rain = eventReqDto.getRain();
+        this.wind = eventReqDto.getWind();
+        this.humidity = eventReqDto.getHumidity();
+        this.feelsLike = eventReqDto.getFeelsLike();
     }
-    public void updateWeather(EventDto eventDto) {
-        this.weather = eventDto.getWeather();
-        this.temp = eventDto.getTemp();
-        this.rain = eventDto.getRain();
-        this.wind = eventDto.getWind();
-        this.humidity = eventDto.getHumidity();
-        this.feelsLike = eventDto.getFeelsLike();
+    public void updateWeather(EventReqDto eventReqDto) {
+        if (eventReqDto == null) {
+            throw new BusinessException(EventErrorCode.EVENT_UPDATE_FAILED);
+        }
+        this.weather = eventReqDto.getWeather();
+        this.temp = eventReqDto.getTemp();
+        this.rain = eventReqDto.getRain();
+        this.wind = eventReqDto.getWind();
+        this.humidity = eventReqDto.getHumidity();
+        this.feelsLike = eventReqDto.getFeelsLike();
     }
 }

@@ -3,8 +3,8 @@ package org.project.todayclothes.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.project.todayclothes.dto.EventDto;
-import org.project.todayclothes.exception.CustomException;
+import org.project.todayclothes.dto.EventReqDto;
+import org.project.todayclothes.exception.BusinessException;
 import org.project.todayclothes.exception.code.EventErrorCode;
 import org.project.todayclothes.global.Style;
 import org.project.todayclothes.global.Type;
@@ -40,31 +40,31 @@ public class Event {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Event(EventDto eventDto, Weather weather) {
-        this.startTime = eventDto.getStartTime();
-        this.endTime = eventDto.getEndTime();
-        this.location = eventDto.getLocation();
-        this.type = eventDto.getType();
-        this.style = eventDto.getStyle();
+    public Event(EventReqDto eventReqDto, Weather weather) {
+        this.startTime = eventReqDto.getStartTime();
+        this.endTime = eventReqDto.getEndTime();
+        this.location = eventReqDto.getLocation();
+        this.type = eventReqDto.getType();
+        this.style = eventReqDto.getStyle();
         this.weather = weather;
     }
 
-    public void updateEvent(EventDto eventDto) {
-        if (eventDto == null){
-            throw new CustomException(EventErrorCode.EVENT_UPDATE_FAILED);
+    public void updateEvent(EventReqDto eventReqDto) {
+        if (eventReqDto == null){
+            throw new BusinessException(EventErrorCode.EVENT_UPDATE_FAILED);
         }
-        this.startTime = eventDto.getStartTime();
-        this.endTime = eventDto.getEndTime();
-        this.location = eventDto.getLocation();
-        this.type = eventDto.getType();
-        this.style = eventDto.getStyle();
+        this.startTime = eventReqDto.getStartTime();
+        this.endTime = eventReqDto.getEndTime();
+        this.location = eventReqDto.getLocation();
+        this.type = eventReqDto.getType();
+        this.style = eventReqDto.getStyle();
     }
 
-    public void updateWeather(EventDto eventDto) {
+    public void updateWeather(EventReqDto eventReqDto) {
         if (this.weather == null) {
-            this.weather = new Weather(eventDto);
+            this.weather = new Weather(eventReqDto);
         } else {
-            this.weather.updateWeather(eventDto);
+            this.weather.updateWeather(eventReqDto);
         }
     }
 }

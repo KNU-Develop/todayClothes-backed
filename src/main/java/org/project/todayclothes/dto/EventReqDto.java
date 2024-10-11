@@ -9,9 +9,8 @@ import org.project.todayclothes.global.Type;
 import java.time.LocalDateTime;
 
 @Getter
-@Builder
 @NoArgsConstructor
-public class EventDto {
+public class EventReqDto {
 
     private String location;
     private LocalDateTime startTime;
@@ -26,8 +25,9 @@ public class EventDto {
     private double feelsLike;
     private double temp;
 
-    public EventDto(String location, LocalDateTime startTime, LocalDateTime endTime, Type type, Style style,
-                    Integer weather, double wind, double rain, double humidity, double feelsLike, double temp) {
+    @Builder
+    public EventReqDto(String location, LocalDateTime startTime, LocalDateTime endTime, Type type, Style style,
+                       Integer weather, double wind, double rain, double humidity, double feelsLike, double temp) {
         this.location = location;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -40,4 +40,5 @@ public class EventDto {
         this.feelsLike = feelsLike;
         this.temp = temp;
     }
+
 }

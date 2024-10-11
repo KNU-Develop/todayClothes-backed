@@ -2,10 +2,10 @@ package org.project.todayclothes.exception;
 
 import org.project.todayclothes.exception.code.ErrorCode;
 
-public class CustomException extends RuntimeException {
+public class BusinessException extends RuntimeException {
     private final ErrorCode errorCode;
 
-    public CustomException(ErrorCode errorCode) {
+    public BusinessException(ErrorCode errorCode) {
         super(errorCode.getMessage());
         this.errorCode = errorCode;
     }
