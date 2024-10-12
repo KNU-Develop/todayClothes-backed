@@ -41,16 +41,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         Oauth2UserDto oauth2UserDto = new Oauth2UserDto(oAuth2Response, "USER");
         CustomOAuth2User customOAuth2User = new CustomOAuth2User(oauth2UserDto);
 
-        String encodeSocialId = encodeSocialId(customOAuth2User.getSocialId());
+//        String encodeSocialId = encodeSocialId(customOAuth2User.getSocialId());
 //        String encodeSocialId = customOAuth2User.getSocialId();
+        String socialId = customOAuth2User.getSocialId();
 
-        Optional<User> userOpt = userRepository.findBySocialId(encodeSocialId);
+        Optional<User> userOpt = userRepository.findBySocialId(socialId);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             user.authenticationInfoUpdate(oAuth2Response);
             userRepository.save(user);
         } else {
-            User newUser = new User(encodeSocialId, oAuth2Response.getEmail(), customOAuth2User.getRole());
+            User newUser = new User(socialId, oAuth2Response.getEmail(), customOAuth2User.getRole());
             userRepository.save(newUser);
         }
         return customOAuth2User;
