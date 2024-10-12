@@ -20,6 +20,9 @@ public class Review {
     private Feedback feedback;
     private String imageFile;
 
+    @OneToOne(mappedBy = "review", fetch = FetchType.LAZY)
+    private Event event;
+
     public Review(Feedback feedback, String imageFile) {
         this.feedback = feedback;
         this.imageFile = imageFile;

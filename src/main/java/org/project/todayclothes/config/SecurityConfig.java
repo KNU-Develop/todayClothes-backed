@@ -64,7 +64,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/","/env","/login").permitAll()
                         .requestMatchers("index.html","/docs/index.html").permitAll()
-                        .requestMatchers("/event").authenticated()
+                        .requestMatchers("/event/**").authenticated()
                         .requestMatchers("/clothes/**").authenticated()
                         .requestMatchers("/reissue").permitAll()
                         .anyRequest().authenticated())
