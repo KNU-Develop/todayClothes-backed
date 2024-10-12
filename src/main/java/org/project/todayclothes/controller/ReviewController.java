@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.project.todayclothes.dto.ReviewReq;
 import org.project.todayclothes.dto.oauth2.CustomOAuth2User;
 import org.project.todayclothes.exception.Api_Response;
+import org.project.todayclothes.exception.code.CommonErrorCode;
 import org.project.todayclothes.exception.code.SuccessCode;
 import org.project.todayclothes.service.ReviewService;
 import org.project.todayclothes.util.ApiResponseUtil;
@@ -24,8 +25,11 @@ public class ReviewController {
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @RequestPart(value = "reviewReq") ReviewReq reviewReq,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
-        Long userId = customOAuth2User.getUserId();
-        reviewService.createReview(userId,reviewReq, imageFile);
+        String socialId = customOAuth2User.getSocialId();
+        if (socialId == null || socialId.isEmpty()) {
+            return ApiResponseUtil.createErrorResponse(CommonErrorCode.UNAUTHORIZED_MEMBER);
+        }
+        reviewService.createReview(socialId,reviewReq, imageFile);
         return ApiResponseUtil.createSuccessResponse(SuccessCode.INSERT_SUCCESS.getMessage());
     }
 
@@ -35,8 +39,11 @@ public class ReviewController {
             @PathVariable Long reviewId,
             @RequestPart(value = "reviewReq") ReviewReq reviewReq,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
-        Long userId = customOAuth2User.getUserId();
-        reviewService.updateReview(userId, reviewId, reviewReq, imageFile);
+        String socialId = customOAuth2User.getSocialId();
+        if (socialId == null || socialId.isEmpty()) {
+            return ApiResponseUtil.createErrorResponse(CommonErrorCode.UNAUTHORIZED_MEMBER);
+        }
+        reviewService.updateReview(socialId, reviewId, reviewReq, imageFile);
         return ApiResponseUtil.createSuccessResponse(SuccessCode.UPDATE_SUCCESS.getCode());
     }
 }
