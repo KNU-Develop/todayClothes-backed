@@ -12,7 +12,6 @@ import org.project.todayclothes.exception.code.EventErrorCode;
 import org.project.todayclothes.exception.code.UserErrorCode;
 import org.project.todayclothes.repository.EventRepository;
 import org.project.todayclothes.repository.UserRepository;
-import org.project.todayclothes.repository.WeatherRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,23 +24,23 @@ public class EventService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
 
-    private User findUserById(Long userId) {
-        return userRepository.findById(userId)
+    private User findUserById(String socialId) {
+        return userRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
-    public List<ClothesResDto> getUserClothesRecords(Long userId) {
-        User user = findUserById(userId);
-        List<Event> events = eventRepository.findAllByUserId(userId);
+    public List<ClothesResDto> getUserClothesRecords(String socialId) {
+        User user = findUserById(socialId);
+        List<Event> events = eventRepository.findAllByUserSocialId(socialId);
         return events.stream()
                 .map(ClothesResDto::from)
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public EventResDto createEvent(Long userId, EventReqDto eventReqDto) {
-        User user = findUserById(userId);
+    public EventResDto createEvent(String socialId, EventReqDto eventReqDto) {
+        User user = findUserById(socialId);
         if (eventReqDto.getWeather() == null) {
             throw new BusinessException(EventErrorCode.INVALID_EVENT_DETAILS);
         }
@@ -66,8 +65,8 @@ public class EventService {
 
 
     @Transactional
-    public void updateEvent(Long userId, Long eventId, EventReqDto eventReqDto) {
-        User user = findUserById(userId);
+    public void updateEvent(String socialId, Long eventId, EventReqDto eventReqDto) {
+        User user = findUserById(socialId);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new BusinessException(EventErrorCode.EVENT_NOT_FOUND));
 
