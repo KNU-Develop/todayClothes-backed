@@ -3,6 +3,7 @@ package org.project.todayclothes.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.project.todayclothes.dto.EventReqDto;
 import org.project.todayclothes.exception.BusinessException;
 import org.project.todayclothes.exception.code.EventErrorCode;
@@ -36,6 +37,7 @@ public class Event {
     @JoinColumn(name = "weather_id")
     private Weather weather;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
