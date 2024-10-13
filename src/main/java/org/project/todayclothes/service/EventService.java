@@ -45,7 +45,7 @@ public class EventService {
             throw new BusinessException(EventErrorCode.INVALID_EVENT_DETAILS);
         }
         Weather weather = new Weather(eventReqDto);
-        Event event = new Event(eventReqDto, weather);
+        Event event = new Event(eventReqDto, weather, user);
         String comment = generateClothesComment(eventReqDto.getFeelsLike());
         Event savedEvent = eventRepository.save(event);
         return EventResDto.builder()
