@@ -69,4 +69,20 @@ public class Event {
             this.weather.updateWeather(eventReqDto);
         }
     }
+
+    public Event changeImagePath(String imagePath) {
+        if (imagePath == null || imagePath.isEmpty()) {
+            throw new BusinessException(EventErrorCode.EVENT_UPDATE_FAILED);
+        }
+        this.imagePath = imagePath;
+        return this;
+    }
+
+    public Event associateReview(Review review) {
+        if (this.review != null) {
+            throw new IllegalStateException("Review is already associated with this event.");
+        }
+        this.review = review;
+        return this;
+    }
 }
