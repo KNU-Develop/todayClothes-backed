@@ -1,7 +1,6 @@
 package org.project.todayclothes.controller;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.project.todayclothes.dto.ClothesResDto;
 import org.project.todayclothes.dto.EventReqDto;
 import org.project.todayclothes.dto.EventResDto;

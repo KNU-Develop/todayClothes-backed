@@ -42,13 +42,14 @@ public class Event {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Event(EventReqDto eventReqDto, Weather weather) {
+    public Event(EventReqDto eventReqDto, Weather weather,User user) {
         this.startTime = eventReqDto.getStartTime();
         this.endTime = eventReqDto.getEndTime();
         this.location = eventReqDto.getLocation();
         this.type = eventReqDto.getType();
         this.style = eventReqDto.getStyle();
         this.weather = weather;
+        this.user = user;
     }
 
     public void updateEvent(EventReqDto eventReqDto) {
