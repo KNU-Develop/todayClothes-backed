@@ -20,7 +20,6 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private LocalDateTime startTime;
-    private LocalDateTime endTime;
     private String location;
     @Enumerated(EnumType.STRING)
     private Type type;
@@ -44,7 +43,6 @@ public class Event {
 
     public Event(EventReqDto eventReqDto, Weather weather,User user) {
         this.startTime = eventReqDto.getStartTime();
-        this.endTime = eventReqDto.getEndTime();
         this.location = eventReqDto.getLocation();
         this.type = eventReqDto.getType();
         this.style = eventReqDto.getStyle();
@@ -57,7 +55,6 @@ public class Event {
             throw new BusinessException(EventErrorCode.EVENT_UPDATE_FAILED);
         }
         this.startTime = eventReqDto.getStartTime();
-        this.endTime = eventReqDto.getEndTime();
         this.location = eventReqDto.getLocation();
         this.type = eventReqDto.getType();
         this.style = eventReqDto.getStyle();

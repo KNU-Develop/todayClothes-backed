@@ -1,6 +1,7 @@
 package org.project.todayclothes.service.crawler;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -12,9 +13,14 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.project.todayclothes.dto.crawling.ClotheDto;
 import org.project.todayclothes.entity.Clothe;
+import org.project.todayclothes.exception.BusinessException;
+import org.project.todayclothes.exception.code.ClotheErrorCode;
 import org.project.todayclothes.global.Category;
 import org.project.todayclothes.repository.ClotheRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.project.todayclothes.service.BackgroundRemoverService;
+import org.project.todayclothes.service.ClothesService;
+import org.project.todayclothes.service.S3UploadService;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -23,6 +29,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
@@ -31,6 +38,7 @@ import java.util.List;
 
 import static org.project.todayclothes.global.Category.*;
 
+@Slf4j
 @Service
 @EnableScheduling
 @RequiredArgsConstructor
@@ -57,6 +65,7 @@ public class ZaraCrawlerService {
 
 
     private final ClotheRepository clotheRepository;
+    private final ClothesService clothesService;
 
     @EventListener(ApplicationReadyEvent.class)
     public void executeOnceOnStartup() throws MalformedURLException, InterruptedException {
@@ -74,7 +83,7 @@ public class ZaraCrawlerService {
     }
 
     @Transactional
-    public void crawlingProductHeader() throws MalformedURLException, InterruptedException {
+    public void crawlingProductHeader() throws InterruptedException, MalformedURLException {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless");
         options.addArguments("--disable-gpu");
@@ -99,9 +108,34 @@ public class ZaraCrawlerService {
         crawlingByCategory(SHOES, driver, clotheDtoList);
         crawlingByCategory(OUTER, driver, clotheDtoList);
 
-
         for (ClotheDto clotheDto : clotheDtoList) {
-            clotheRepository.save(new Clothe(clotheDto));
+            // 이미지 URL로 기존 데이터 확인
+            boolean alreadyExists = clotheRepository.existsByImgUrl(clotheDto.getImgUrl());
+
+            if (alreadyExists) {
+                Clothe existingClothe = clotheRepository.findByImgUrl(clotheDto.getImgUrl())
+                        .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND));
+
+                if (existingClothe.getImage() != null) {
+                    log.info("이미 처리가 완료된 데이터입니다. imgUrl: {}", existingClothe.getImgUrl());
+                    continue;
+                }
+                try {
+                    clothesService.processAndUploadImage(existingClothe);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                continue;
+            }
+
+            Clothe newClothe = new Clothe(clotheDto);
+            clotheRepository.save(newClothe);
+
+            try {
+                clothesService.processAndUploadImage(newClothe);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         driver.quit();

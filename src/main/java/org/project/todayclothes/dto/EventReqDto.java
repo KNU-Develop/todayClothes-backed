@@ -14,7 +14,6 @@ public class EventReqDto {
 
     private String location;
     private LocalDateTime startTime;
-    private LocalDateTime endTime;
     private Type type;
     private Style style;
 
@@ -26,11 +25,10 @@ public class EventReqDto {
     private double temp;
 
     @Builder
-    public EventReqDto(String location, LocalDateTime startTime, LocalDateTime endTime, Type type, Style style,
+    public EventReqDto(String location, LocalDateTime startTime, Type type, Style style,
                        Integer weather, double wind, double rain, double humidity, double feelsLike, double temp) {
         this.location = location;
         this.startTime = startTime;
-        this.endTime = endTime;
         this.type = type;
         this.style = style;
         this.weather = weather;
