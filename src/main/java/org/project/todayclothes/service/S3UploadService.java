@@ -7,12 +7,15 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.project.todayclothes.exception.BusinessException;
+import org.project.todayclothes.exception.code.ClotheErrorCode;
 import org.project.todayclothes.exception.code.ReviewErrorCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -30,6 +33,12 @@ public class S3UploadService {
     private static final String CLOTHES_IMG_DIR = "clothes/";
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
+    private static final String TRANSPARENT_BG_IMAGE_URL = "https://static.zara.net/stdstatic/6.34.2/images/transparent-background.png";
+
+    public boolean shouldSkipProcessing(String imgUrl) {
+        return TRANSPARENT_BG_IMAGE_URL.equals(imgUrl);
+    }
+
     public String savePhoto(MultipartFile multipartFile) {
         validateFile(multipartFile);
         String fileName = CLOTHES_IMG_DIR + UUID.randomUUID() + multipartFile.getOriginalFilename();
@@ -44,7 +53,34 @@ public class S3UploadService {
             throw new BusinessException(ReviewErrorCode.S3_UPLOAD_FAILED);
         }
 
-        return amazonS3Client.getUrl(bucket, fileName).toString(); // 업로드된 파일 URL 반환
+        return amazonS3Client.getUrl(bucket, fileName).toString(); 
+    }
+
+    public String savePhoto(String filePath) {
+        File file = new File(filePath);
+
+        if (!file.exists()) {
+            throw new BusinessException(ClotheErrorCode.S3_UPLOAD_FAILED);
+        }
+
+        if (file.length() > MAX_FILE_SIZE) {
+            throw new BusinessException(ClotheErrorCode.FILE_CONVERT_FAILED);
+        }
+
+        try (FileInputStream inputStream = new FileInputStream(file)) {
+            String fileName = CLOTHES_IMG_DIR + file.getName();
+
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(file.length());
+            metadata.setContentType("image/png");
+
+            amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, inputStream, metadata)
+                    .withCannedAcl(CannedAccessControlList.PublicRead));
+
+            return amazonS3Client.getUrl(bucket, fileName).toString(); // 업로드된 파일 URL 반환
+        } catch (IOException e) {
+            throw new BusinessException(ClotheErrorCode.S3_UPLOAD_FAILED);
+        }
     }
 
     public void deletePhoto(String imageUrl) {
