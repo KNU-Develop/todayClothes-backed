@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers("index.html","/docs/index.html").permitAll()
                         .requestMatchers("/event/**").authenticated()
                         .requestMatchers("/clothes/**").authenticated()
+                        .requestMatchers("/gpt").permitAll()
                         .requestMatchers("/reissue").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login((oauth2) -> oauth2

@@ -2,6 +2,7 @@ package org.project.todayclothes.service.crawler;
 
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -13,6 +14,7 @@ import org.project.todayclothes.dto.crawling.ClotheDto;
 import org.project.todayclothes.entity.Clothe;
 import org.project.todayclothes.global.Category;
 import org.project.todayclothes.repository.ClotheRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -33,8 +35,10 @@ import static org.project.todayclothes.global.Category.*;
 @EnableScheduling
 @RequiredArgsConstructor
 public class ZaraCrawlerService {
-    private final String DEV_CHROME_DRIVER_PATH = "C:\\Program Files\\chromedriver-win64\\chromedriver.exe";
-
+    @Value("${crawler.mode}")
+    private String MODE;
+    @Value("${crawler.path}")
+    private String CHROME_DRIVER_PATH;
     // BASE URL
     private final String BASE_URL = "https://www.zara.com/kr/ko";
 
@@ -54,27 +58,46 @@ public class ZaraCrawlerService {
 
     private final ClotheRepository clotheRepository;
 
-    // @EventListener(ApplicationReadyEvent.class)
+    @EventListener(ApplicationReadyEvent.class)
+    public void executeOnceOnStartup() throws MalformedURLException, InterruptedException {
+        if (MODE.equals("dev")) {
+            crawlingProductHeader();
+        }
+    }
+
+
     @Scheduled(cron = "0 0 0 * * 0")
+    public void executePeriodically() throws MalformedURLException, InterruptedException {
+        if (MODE.equals("deploy")) {
+            crawlingProductHeader();
+        }
+    }
+
     @Transactional
-    public void crawlingProductHeader() throws MalformedURLException {
-        System.setProperty("webdriver.chrome.driver", DEV_CHROME_DRIVER_PATH);
+    public void crawlingProductHeader() throws MalformedURLException, InterruptedException {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless");
+        options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36");
-//        WebDriver driver = new ChromeDriver(options);
-        WebDriver driver = new RemoteWebDriver(new URL("http://selenium-chrome:4444/wd/hub"), options);
+        WebDriver driver;
+
+        if (MODE.equals("dev")) {
+            System.setProperty("webdriver.chrome.driver", CHROME_DRIVER_PATH);
+            driver = new ChromeDriver(options);
+        } else { // deploy
+            driver = new RemoteWebDriver(new URL(CHROME_DRIVER_PATH), options);
+        }
 
         List<ClotheDto> clotheDtoList = new ArrayList<>();
         crawlingByCategory(TOP, driver, clotheDtoList);
-       crawlingByCategory(PANTS, driver, clotheDtoList);
-       crawlingByCategory(BEANIE, driver, clotheDtoList);
-       crawlingByCategory(CAP, driver, clotheDtoList);
-       crawlingByCategory(SUNGLASSES, driver, clotheDtoList);
-       crawlingByCategory(SHOES, driver, clotheDtoList);
-       crawlingByCategory(OUTER, driver, clotheDtoList);
+        crawlingByCategory(PANTS, driver, clotheDtoList);
+        crawlingByCategory(BEANIE, driver, clotheDtoList);
+        crawlingByCategory(CAP, driver, clotheDtoList);
+        crawlingByCategory(SUNGLASSES, driver, clotheDtoList);
+        crawlingByCategory(SHOES, driver, clotheDtoList);
+        crawlingByCategory(OUTER, driver, clotheDtoList);
 
 
         for (ClotheDto clotheDto : clotheDtoList) {
@@ -90,12 +113,25 @@ public class ZaraCrawlerService {
     }
 
     @Async
-    public void crawlingByCategory(Category category, WebDriver driver, List<ClotheDto> clotheDtoList) {
+    public void crawlingByCategory(Category category, WebDriver driver, List<ClotheDto> clotheDtoList) throws InterruptedException {
         String categoryUrl = getCategoryUrl(category);
         if (categoryUrl == null) return;
 
         for (int page = 1; page <= 1; ++page) {
             driver.get(BASE_URL + categoryUrl + page);
+            try {
+                Thread.sleep(1000);
+                JavascriptExecutor js = (JavascriptExecutor) driver;
+                long currentScrollPosition = 0;
+                long scrollHeight = (long) js.executeScript("return document.body.scrollHeight");
+                while (currentScrollPosition < scrollHeight) {
+                    js.executeScript("window.scrollBy(0, 200);");
+                    currentScrollPosition = (long) js.executeScript("return window.pageYOffset;");
+                    Thread.sleep(300);
+                    scrollHeight = (long) js.executeScript("return document.body.scrollHeight");
+                }
+            } catch (Exception e) {
+            }
             int pageSize = (page - 1) * 80;
 
             for (int i = 1; i <= 80; ++i) {
@@ -119,6 +155,7 @@ public class ZaraCrawlerService {
                     break;
                 }
             }
+            driver.quit();
         }
 
     }
