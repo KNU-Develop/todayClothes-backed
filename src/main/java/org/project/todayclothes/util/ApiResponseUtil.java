@@ -1,6 +1,7 @@
 package org.project.todayclothes.util;
 
 import org.project.todayclothes.exception.Api_Response;
+import org.project.todayclothes.global.code.SuccessCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.project.todayclothes.exception.code.ErrorCode;
@@ -14,6 +15,10 @@ public class ApiResponseUtil {
                 .result(result)
                 .build();
         return ResponseEntity.status(status).body(response);
+    }
+
+    public static <T> ResponseEntity<Api_Response<T>> createSuccessResponse(SuccessCode successCode, T result) {
+        return createResponse(successCode.getHttpStatus(), successCode.getMessage(), result);
     }
 
     public static <T> ResponseEntity<Api_Response<T>> createSuccessResponse(String message, T result) {
