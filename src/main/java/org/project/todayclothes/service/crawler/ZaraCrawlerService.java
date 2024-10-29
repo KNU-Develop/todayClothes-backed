@@ -100,45 +100,47 @@ public class ZaraCrawlerService {
         }
 
         List<ClotheDto> clotheDtoList = new ArrayList<>();
-        crawlingByCategory(TOP, driver, clotheDtoList);
-        crawlingByCategory(PANTS, driver, clotheDtoList);
-        crawlingByCategory(BEANIE, driver, clotheDtoList);
-        crawlingByCategory(CAP, driver, clotheDtoList);
-        crawlingByCategory(SUNGLASSES, driver, clotheDtoList);
-        crawlingByCategory(SHOES, driver, clotheDtoList);
-        crawlingByCategory(OUTER, driver, clotheDtoList);
+        try {
+            crawlingByCategory(TOP, driver, clotheDtoList);
+            crawlingByCategory(PANTS, driver, clotheDtoList);
+            crawlingByCategory(BEANIE, driver, clotheDtoList);
+            crawlingByCategory(CAP, driver, clotheDtoList);
+            crawlingByCategory(SUNGLASSES, driver, clotheDtoList);
+            crawlingByCategory(SHOES, driver, clotheDtoList);
+            crawlingByCategory(OUTER, driver, clotheDtoList);
 
-        for (ClotheDto clotheDto : clotheDtoList) {
-            // 이미지 URL로 기존 데이터 확인
-            boolean alreadyExists = clotheRepository.existsByImgUrl(clotheDto.getImgUrl());
+            for (ClotheDto clotheDto : clotheDtoList) {
+                // 이미지 URL로 기존 데이터 확인
+                boolean alreadyExists = clotheRepository.existsByImgUrl(clotheDto.getImgUrl());
 
-            if (alreadyExists) {
-                Clothe existingClothe = clotheRepository.findByImgUrl(clotheDto.getImgUrl())
-                        .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND));
+                if (alreadyExists) {
+                    Clothe existingClothe = clotheRepository.findByImgUrl(clotheDto.getImgUrl())
+                            .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND));
 
-                if (existingClothe.getImage() != null) {
-                    log.info("이미 처리가 완료된 데이터입니다. imgUrl: {}", existingClothe.getImgUrl());
+                    if (existingClothe.getImage() != null) {
+                        log.info("이미 처리가 완료된 데이터입니다. imgUrl: {}", existingClothe.getImgUrl());
+                        continue;
+                    }
+                    try {
+                        clothesService.processAndUploadImage(existingClothe);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                     continue;
                 }
+
+                Clothe newClothe = new Clothe(clotheDto);
+                clotheRepository.save(newClothe);
+
                 try {
-                    clothesService.processAndUploadImage(existingClothe);
+                    clothesService.processAndUploadImage(newClothe);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-                continue;
             }
-
-            Clothe newClothe = new Clothe(clotheDto);
-            clotheRepository.save(newClothe);
-
-            try {
-                clothesService.processAndUploadImage(newClothe);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        } finally {
+            driver.quit(); // 전체 크롤링이 끝난 후 드라이버 종료
         }
-
-        driver.quit();
     }
 
     private WebElement waitForElement(WebDriver driver, String cssSelector) {
