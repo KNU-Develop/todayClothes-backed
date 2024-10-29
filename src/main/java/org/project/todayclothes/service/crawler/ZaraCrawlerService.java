@@ -69,9 +69,9 @@ public class ZaraCrawlerService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void executeOnceOnStartup() throws MalformedURLException, InterruptedException {
-        if (MODE.equals("dev")) {
+        //if (MODE.equals("dev")) {
             crawlingProductHeader();
-        }
+        //}
     }
 
 
