@@ -12,6 +12,9 @@ import org.project.todayclothes.exception.code.EventErrorCode;
 import org.project.todayclothes.exception.code.UserErrorCode;
 import org.project.todayclothes.repository.EventRepository;
 import org.project.todayclothes.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,14 +32,14 @@ public class EventService {
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
     }
 
-    @Transactional(readOnly = true)
-    public List<ClothesResDto> getUserClothesRecords(String socialId) {
-        User user = findUserById(socialId);
-        List<Event> events = eventRepository.findAllByUserSocialId(socialId);
-        return events.stream()
-                .map(ClothesResDto::from)
-                .collect(Collectors.toList());
-    }
+//    @Transactional(readOnly = true)
+//    public List<ClothesResDto> getUserClothesRecords(String socialId) {
+//        User user = findUserById(socialId);
+//        List<Event> events = eventRepository.findAllByUserSocialId(socialId);
+//        return events.stream()
+//                .map(ClothesResDto::from)
+//                .collect(Collectors.toList());
+//    }
 
     @Transactional
     public EventResDto createEvent(String socialId, EventReqDto eventReqDto) {
@@ -73,6 +76,21 @@ public class EventService {
         event.updateWeather(eventReqDto);
         event.updateEvent(eventReqDto);
     }
+
+    @Transactional(readOnly = true)
+    public List<ClothesResDto> getAllEvents(int page, int size, String socialId, Long userId) {
+        User user = findUserById(socialId);
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.Direction.DESC,"createdAt");
+        Page<Event> eventPage;
+        if (userId != null) {
+            eventPage = eventRepository.findAllByUserId(userId, pageRequest);
+        } else {
+            eventPage = eventRepository.findAll(pageRequest);
+        }
+        return eventPage.stream()
+                .map(ClothesResDto::from)
+                .collect(Collectors.toList());
+        }
 
     private String generateClothesComment(double feelsLike) {
         if (feelsLike <= 10) {

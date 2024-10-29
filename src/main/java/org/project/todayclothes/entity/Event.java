@@ -27,6 +27,7 @@ public class Event {
     private Style style;
     private String imagePath;
     private String comment;
+    private LocalDateTime createdAt;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "review_id")
@@ -48,6 +49,12 @@ public class Event {
         this.style = eventReqDto.getStyle();
         this.weather = weather;
         this.user = user;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 
     public void updateEvent(EventReqDto eventReqDto) {
