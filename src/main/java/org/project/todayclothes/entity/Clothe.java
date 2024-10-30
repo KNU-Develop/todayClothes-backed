@@ -21,24 +21,24 @@ public class Clothe {
     private Integer price;
     private Category category;
     @Column(length = 65535)
-    private String content;
+    private String description;
     private String imgUrl;
     private String image;
 
     public Clothe(ClotheDto clotheDto) {
         this.name = clotheDto.getName();
         this.price = clotheDto.getPrice();
-        this.category = clotheDto.getCategory() == Category.BEANIE ? Category.CAP : clotheDto.getCategory();
-        this.content = clotheDto.getLink();
+//        this.category = clotheDto.getCategory() == Category.BEANIE ? Category.CAP : clotheDto.getCategory();
+        this.description = clotheDto.getDescription();
         this.imgUrl = clotheDto.getImgUrl();
     }
 
-    public Clothe(Long id, String name, Integer price, Category category, String content, String imgUrl, String image) {
+    public Clothe(Long id, String name, Integer price, Category category, String description, String imgUrl, String image) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.category = category;
-        this.content = content;
+        this.description = description;
         this.imgUrl = imgUrl;
         this.image = image;
     }
@@ -54,7 +54,7 @@ public class Clothe {
                 ", name='" + name + '\'' +
                 ", price=" + price +
                 ", category=" + category +
-                ", content='" + content + '\'' +
+                ", description='" + description + '\'' +
                 ", imgUrl='" + imgUrl + '\'' +
                 '}';
     }

@@ -43,10 +43,6 @@ import static org.project.todayclothes.global.Category.*;
 @EnableScheduling
 @RequiredArgsConstructor
 public class ZaraCrawlerService {
-    @Value("${crawler.mode}")
-    private String MODE;
-    @Value("${crawler.path}")
-    private String CHROME_DRIVER_PATH;
     // BASE URL
     private final String BASE_URL = "https://www.zara.com/kr/ko";
 
@@ -67,38 +63,8 @@ public class ZaraCrawlerService {
     private final ClotheRepository clotheRepository;
     private final ClothesService clothesService;
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void executeOnceOnStartup() throws MalformedURLException, InterruptedException {
-        if (MODE.equals("dev")) {
-            crawlingProductHeader();
-        }
-    }
-
-
-    @Scheduled(cron = "0 0 0 * * 0")
-    public void executePeriodically() throws MalformedURLException, InterruptedException {
-        if (MODE.equals("deploy")) {
-            crawlingProductHeader();
-        }
-    }
-
     @Transactional
-    public void crawlingProductHeader() throws InterruptedException, MalformedURLException {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless");
-        options.addArguments("--disable-gpu");
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36");
-        WebDriver driver;
-
-        if (MODE.equals("dev")) {
-            System.setProperty("webdriver.chrome.driver", CHROME_DRIVER_PATH);
-            driver = new ChromeDriver(options);
-        } else { // deploy
-            driver = new RemoteWebDriver(new URL(CHROME_DRIVER_PATH), options);
-        }
-
+    public void crawlingProductHeader(WebDriver driver) throws InterruptedException {
         List<ClotheDto> clotheDtoList = new ArrayList<>();
         try {
             crawlingByCategory(TOP, driver, clotheDtoList);
@@ -183,7 +149,7 @@ public class ZaraCrawlerService {
                             .name(name)
                             .price(price)
                             .category(category == BEANIE ? CAP : category)
-                            .content(null)
+                            .description(null)
                             .link(link)
                             .imgUrl(imgUrl)
                             .build());
