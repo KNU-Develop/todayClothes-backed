@@ -27,7 +27,7 @@ public class CrawlerManagementService {
     }
 
 
-    @Scheduled(cron = "0 0 0 * * 3")
+    @Scheduled(cron = "0 0 16 ? * WED")
     public void executePeriodically() {
         if (MODE.equals("deploy")) {
             sieCrawlerService.crawling();
