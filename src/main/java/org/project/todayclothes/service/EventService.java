@@ -32,14 +32,14 @@ public class EventService {
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
     }
 
-//    @Transactional(readOnly = true)
-//    public List<ClothesResDto> getUserClothesRecords(String socialId) {
-//        User user = findUserById(socialId);
-//        List<Event> events = eventRepository.findAllByUserSocialId(socialId);
-//        return events.stream()
-//                .map(ClothesResDto::from)
-//                .collect(Collectors.toList());
-//    }
+    @Transactional(readOnly = true)
+    public List<ClothesResDto> getUserClothesRecords(String socialId) {
+        User user = findUserById(socialId);
+        List<Event> events = eventRepository.findAllByUserSocialId(socialId);
+        return events.stream()
+                .map(ClothesResDto::from)
+                .collect(Collectors.toList());
+    }
 
     @Transactional
     public EventResDto createEvent(String socialId, EventReqDto eventReqDto) {
@@ -57,6 +57,8 @@ public class EventService {
                 .comment(comment)
                 .type(event.getType())
                 .style(event.getStyle())
+                .gender(event.getGender())
+                .timezone(event.getTimezone())
                 .weather(eventReqDto.getWeather())
                 .wind(eventReqDto.getWind())
                 .rain(eventReqDto.getRain())
@@ -72,7 +74,6 @@ public class EventService {
         User user = findUserById(socialId);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new BusinessException(EventErrorCode.EVENT_NOT_FOUND));
-
         event.updateWeather(eventReqDto);
         event.updateEvent(eventReqDto);
     }
