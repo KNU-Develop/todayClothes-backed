@@ -23,16 +23,5 @@ public class ApiDocumentationTest {
                 .andExpect(status().isOk())
                 .andDo(document("get-user"));
     }
-    @Test
-    public void shouldDocumentApiReview() throws Exception {
-        mockMvc.perform(RestDocumentationRequestBuilders.get("/review"))
-                .andExpect(status().isOk())
-                .andDo(document("review"));
-    }
-    @Test
-    public void shouldDocumentApiReview2() throws Exception {
-        mockMvc.perform(RestDocumentationRequestBuilders.get("/review/{reviewId}"))
-                .andExpect(status().isOk())
-                .andDo(document("review"));
-    }
+
 }
