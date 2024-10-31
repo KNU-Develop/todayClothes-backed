@@ -17,21 +17,22 @@ public class CrawlerManagementService {
 
 //    private final ZaraCrawlerService zaraCrawlerService;
     private final SieCrawlerService sieCrawlerService;
+    private final KappydesinCrawlerService kappydesinCrawlerService;
 
     @EventListener(ApplicationReadyEvent.class)
     public void executeOnceOnStartup() {
         if (MODE.equals("dev")) {
-            sieCrawlerService.crawling();
+//            sieCrawlerService.crawling();
+            kappydesinCrawlerService.crawling();
 //            zaraCrawlerService.crawlingProductHeader(driver);
         }
     }
 
 
-    @Scheduled(cron = "0 0 16 ? * WED")
+    @Scheduled(cron = "0 0 16 ? * WED", zone = "Asia/Seoul")
     public void executePeriodically() {
         if (MODE.equals("deploy")) {
             sieCrawlerService.crawling();
-//            zaraCrawlerService.crawlingProductHeader(driver);
         }
     }
 }

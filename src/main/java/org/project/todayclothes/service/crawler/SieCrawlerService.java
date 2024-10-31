@@ -15,9 +15,6 @@ import org.project.todayclothes.global.PRODUCT_INFO;
 import org.project.todayclothes.repository.ClotheRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.net.MalformedURLException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,16 +31,17 @@ public class SieCrawlerService implements CrawlerService {
     private final String BASE_URL = "https://sie-official.kr";
     private final WebDriver driver;
     private final ClotheRepository clotheRepository;
-    @Transactional
+
+    @Override
     public void crawling() {
         List<ClotheDto> clotheDtoList = new ArrayList<>();
         try {
             Category[] categories = {TOPS_TEE, TOPS_KNIT, TOPS_BLOUSE, PANTS, SKIRTS, OUTERS, NEW_WINTER, DRESSER, BAGS, JEWELRY};
             for (Category category : categories) {
-                crawlingProductHead(category, driver, clotheDtoList);
+                crawlingProductHead(category, clotheDtoList);
             }
             for (ClotheDto clotheDto : clotheDtoList) {
-                crawlingContent(driver, clotheDto);
+                crawlingContent(clotheDto);
                 Clothe newClothe = new Clothe(clotheDto);
                 clotheRepository.save(newClothe);
             }
@@ -54,13 +52,13 @@ public class SieCrawlerService implements CrawlerService {
     }
 
     @Async
-    public void crawlingProductHead(Category category, WebDriver driver, List<ClotheDto> clotheDtoList) {
+    public void crawlingProductHead(Category category, List<ClotheDto> clotheDtoList) {
         String url = BASE_URL + getCrawlingUrl(category);
         try {
             for (int page = 1; page <= 2; ++page) {
                 try {
                     driver.get(url);
-                    waitForPageLoad(driver, "complete");
+                    waitForPageLoad("complete");
                 } catch (Exception e) {
                     log.warn("[CRAWLING FAILED] fail load page : " + url);
                 }
@@ -72,10 +70,10 @@ public class SieCrawlerService implements CrawlerService {
                     log.warn("[CRAWLING FAILED] fail check page size : " + url);
                 }
                 for (int i = 1; i <= size; ++i) {
-                    String name = waitForElement(driver, getSelector(NAME, i)).getText();
-                    int price = Integer.parseInt(waitForElement(driver, getSelector(PRICE, i)).getText().replace(",", ""));
-                    String imgUrl = parsingImgPath(waitForElement(driver, getSelector(IMG_URL, i)).getAttribute("style"));
-                    String link = waitForElement(driver, getSelector(LINK, i)).getAttribute("href");
+                    String name = waitForElement(getSelector(NAME, i)).getText();
+                    int price = Integer.parseInt(waitForElement(getSelector(PRICE, i)).getText().replace(",", ""));
+                    String imgUrl = parsingImgPath(waitForElement(getSelector(IMG_URL, i)).getAttribute("style"));
+                    String link = waitForElement(getSelector(LINK, i)).getAttribute("href");
                     clotheDtoList.add(ClotheDto.builder()
                             .name(name)
                             .price(price)
@@ -90,14 +88,14 @@ public class SieCrawlerService implements CrawlerService {
         }
     }
     @Async
-    public void crawlingContent(WebDriver driver, ClotheDto clotheDto) {
+    public void crawlingContent(ClotheDto clotheDto) {
         if (clotheDto.getLink() == null) {
             log.warn("[CRAWLING FAILED] : crawling product link is null");
             return;
         }
         driver.get(clotheDto.getLink());
-        waitForPageLoad(driver);
-        String description = waitForElement(driver, getSelector(CONTENT)).getText();
+        waitForPageLoad();
+        String description = waitForElement(getSelector(CONTENT)).getText();
         clotheDto.updateDescription(description);
         log.info("crawling -> "+clotheDto);
     }
@@ -115,15 +113,18 @@ public class SieCrawlerService implements CrawlerService {
         }
         return null;
     }
-    private WebElement waitForElement(WebDriver driver, String cssSelector) {
+    private WebElement waitForElement(String cssSelector) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         return wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(cssSelector)));
     }
 
-    private void waitForPageLoad(WebDriver driver) {
-        waitForPageLoad(driver, null);
+    @Override
+    public void waitForPageLoad() {
+        waitForPageLoad(null);
     }
-    private void waitForPageLoad(WebDriver driver, String readyState) {
+
+    @Override
+    public void waitForPageLoad(String readyState) {
         if (readyState == null) {
             readyState = "complete";
         }
@@ -166,7 +167,8 @@ public class SieCrawlerService implements CrawlerService {
         return null;
     }
 
-    private String getSelector(PRODUCT_INFO target, int no) {
+    @Override
+    public String getSelector(PRODUCT_INFO target, int no) {
         return switch (target) {
             case NAME -> String.format("#wrap > div > div.page-full-width > div > ul > li:nth-child(%d) > div.product-item__text-wrapper" +
                     " > a > span", no);
