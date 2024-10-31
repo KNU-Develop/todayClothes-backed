@@ -31,6 +31,7 @@ public class S3UploadService {
     private String bucket;
 
     private static final String CLOTHES_IMG_DIR = "clothes/";
+    private static final String REVIEW_IMG_DIR = "reviews/";
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
     private static final String TRANSPARENT_BG_IMAGE_URL = "https://static.zara.net/stdstatic/6.34.2/images/transparent-background.png";
@@ -41,7 +42,7 @@ public class S3UploadService {
 
     public String savePhoto(MultipartFile multipartFile) {
         validateFile(multipartFile);
-        String fileName = CLOTHES_IMG_DIR + UUID.randomUUID() + multipartFile.getOriginalFilename();
+        String fileName = REVIEW_IMG_DIR + UUID.randomUUID() + multipartFile.getOriginalFilename();
         try {
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentLength(multipartFile.getSize());
@@ -53,23 +54,17 @@ public class S3UploadService {
             throw new BusinessException(ReviewErrorCode.S3_UPLOAD_FAILED);
         }
 
-        return amazonS3Client.getUrl(bucket, fileName).toString(); 
+        return amazonS3Client.getUrl(bucket, fileName).toString();
     }
 
-    public String savePhoto(String filePath) {
+    public String savePhoto(String filePath, String imgUrl) {
         File file = new File(filePath);
-
         if (!file.exists()) {
             throw new BusinessException(ClotheErrorCode.S3_UPLOAD_FAILED);
         }
-
-        if (file.length() > MAX_FILE_SIZE) {
-            throw new BusinessException(ClotheErrorCode.FILE_CONVERT_FAILED);
-        }
+        String fileName = CLOTHES_IMG_DIR + imgUrl.substring(imgUrl.lastIndexOf('/') + 1);
 
         try (FileInputStream inputStream = new FileInputStream(file)) {
-            String fileName = CLOTHES_IMG_DIR + file.getName();
-
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentLength(file.length());
             metadata.setContentType("image/png");
@@ -77,11 +72,25 @@ public class S3UploadService {
             amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, inputStream, metadata)
                     .withCannedAcl(CannedAccessControlList.PublicRead));
 
-            return amazonS3Client.getUrl(bucket, fileName).toString(); // 업로드된 파일 URL 반환
+            log.info("Successfully uploaded to S3: {}", fileName);
+
+            if (file.delete()) {
+                log.info("Local file deleted: {}", filePath);
+            } else {
+                log.warn("Failed to delete local file: {}", filePath);
+            }
+
+            return amazonS3Client.getUrl(bucket, fileName).toString();
         } catch (IOException e) {
             throw new BusinessException(ClotheErrorCode.S3_UPLOAD_FAILED);
         }
     }
+
+
+    private String extractFileName(String imageUrl) {
+        return "processed_" + imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+    }
+
 
     public void deletePhoto(String imageUrl) {
         String fileName = extractFileNameFromUrl(imageUrl);
@@ -94,8 +103,15 @@ public class S3UploadService {
     }
 
     private String extractFileNameFromUrl(String imageUrl) {
-        return imageUrl.substring(imageUrl.indexOf(CLOTHES_IMG_DIR));
+        int dirIndex = imageUrl.indexOf(CLOTHES_IMG_DIR);
+        if (dirIndex != -1) {
+            return imageUrl.substring(dirIndex + CLOTHES_IMG_DIR.length());
+        }
+        // CLOTHES_IMG_DIR가 포함되지 않은 경우 기본적으로 URL의 마지막 파일명을 추출
+        return imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
     }
+
+
 
     private void validateFile(MultipartFile multipartFile) {
         if (multipartFile.getSize() > MAX_FILE_SIZE) {

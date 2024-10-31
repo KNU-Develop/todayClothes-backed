@@ -17,6 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
@@ -32,7 +36,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public Review createReview(String socialId, ReviewReq reviewReq, MultipartFile imageFile) {
+    public Review createReview(String socialId, ReviewReq reviewReq, List<MultipartFile> imageFiles) {
         User user = findUserById(socialId);
         Event event = eventRepository.findById(reviewReq.getClothesId())
                 .orElseThrow(() -> new BusinessException(EventErrorCode.EVENT_NOT_FOUND));
@@ -42,11 +46,12 @@ public class ReviewService {
         if (!Feedback.isValid(String.valueOf(reviewReq.getFeedback()))) {
             throw new BusinessException(ReviewErrorCode.INVALID_FEEDBACK_ENUM);
         }
-        String imageUrl = processImageFile(imageFile);
-        if (imageUrl != null) {
-            event.changeImagePath(imageUrl);
+        List<String> imageUrls = processImageFiles(imageFiles);
+        if (!imageUrls.isEmpty()) {
+            event.updateImagePath(imageUrls);
+            eventRepository.save(event);
         }
-        Review review = new Review(reviewReq.getFeedback(), imageUrl);
+        Review review = new Review(reviewReq.getFeedback(), imageUrls);
         reviewRepository.save(review);
 
         event.associateReview(review);
@@ -56,7 +61,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public Review updateReview(String socialId, Long reviewId, ReviewReq reviewReq, MultipartFile imageFile) {
+    public Review updateReview(String socialId, Long reviewId, ReviewReq reviewReq, List<MultipartFile> imageFiles) {
         User user = findUserById(socialId);
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND));
@@ -66,19 +71,26 @@ public class ReviewService {
         }
         review.updateFeedback(reviewReq.getFeedback());
 
-        if (imageFile != null && !imageFile.isEmpty()) {
-            s3UploadService.deletePhoto(review.getImageFile());
-            String imageUrl = processImageFile(imageFile);
-            review.updateImageFile(imageUrl);
+        if (imageFiles != null && !imageFiles.isEmpty()) {
+            review.getImageFiles().forEach(s3UploadService::deletePhoto);
+
+            List<String> imageUrls = processImageFiles(imageFiles);
+            //review.setImageFiles(imageUrls);
         }
+
         return reviewRepository.save(review);
     }
 
-    private String processImageFile(MultipartFile imageFile) {
-        if (imageFile != null && !imageFile.isEmpty()) {
-            return s3UploadService.savePhoto(imageFile);
+    private List<String> processImageFiles(List<MultipartFile> imageFiles) {
+        if (imageFiles == null || imageFiles.isEmpty()) return new ArrayList<>();
+
+        if (imageFiles.size() > 4) {
+            throw new BusinessException(ReviewErrorCode.FILE_SIZE_EXCEEDED);
         }
-        return null;
+
+        return imageFiles.stream()
+                .map(s3UploadService::savePhoto)
+                .collect(Collectors.toList());
     }
 
 }

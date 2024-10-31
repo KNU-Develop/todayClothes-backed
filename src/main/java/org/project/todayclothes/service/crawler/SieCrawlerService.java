@@ -10,13 +10,17 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.project.todayclothes.dto.crawling.ClotheDto;
 import org.project.todayclothes.entity.Clothe;
+import org.project.todayclothes.exception.BusinessException;
+import org.project.todayclothes.exception.code.ClotheErrorCode;
 import org.project.todayclothes.global.Category;
 import org.project.todayclothes.global.PRODUCT_INFO;
 import org.project.todayclothes.repository.ClotheRepository;
+import org.project.todayclothes.service.ClothesService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -34,24 +38,73 @@ public class SieCrawlerService implements CrawlerService {
     private final String BASE_URL = "https://sie-official.kr";
     private final WebDriver driver;
     private final ClotheRepository clotheRepository;
+    private final ClothesService clothesService;
+
     @Transactional
     public void crawling() {
         List<ClotheDto> clotheDtoList = new ArrayList<>();
+        List<Clothe> clotheBatch = new ArrayList<>();
         try {
-            Category[] categories = {TOPS_TEE, TOPS_KNIT, TOPS_BLOUSE, PANTS, SKIRTS, OUTERS, NEW_WINTER, DRESSER, BAGS, JEWELRY};
+            Category[] categories = {TOPS_TEE, TOPS_KNIT, TOPS_BLOUSE, PANTS, SKIRTS, OUTERS, NEW_WINTER, DRESSER, BAGS, JEWELRY, PUMPS};
             for (Category category : categories) {
                 crawlingProductHead(category, driver, clotheDtoList);
             }
+
             for (ClotheDto clotheDto : clotheDtoList) {
                 crawlingContent(driver, clotheDto);
-                Clothe newClothe = new Clothe(clotheDto);
-                clotheRepository.save(newClothe);
-            }
-        } finally {
+                Clothe clothe = clotheRepository.findByImgUrl(clotheDto.getImgUrl()).orElse(null);
+
+                if (clothe == null) {
+                    clothe = new Clothe(clotheDto);
+                    clotheRepository.save(clothe);
+                    clotheBatch.add(clothe);
+                    processClotheBatch(clotheBatch);
+                } else {
+                    log.info("중복된 imgUrl이 존재합니다: {}", clotheDto.getImgUrl());
+                }
+//                    if (clotheBatch.size() == 10) {
+//                        processClotheBatch(clotheBatch);
+//                        clotheBatch.clear();
+//                    }
+//                }
+//            else {
+//                    log.info("이미 저장된 데이터, 중복 처리하지 않음. imgUrl: {}", clothe.getImgUrl());
+//                }
+//            }
+//            if (!clotheBatch.isEmpty()) {
+//                processClotheBatch(clotheBatch);
+//            }
+//        } catch (Exception e) {
+//            log.error("크롤링 중 오류 발생", e);
+//            throw new BusinessException(ClotheErrorCode.S3_UPLOAD_FAILED);
+                }
+            } finally {
             log.info("SIE 크롤링 종료");
             driver.quit();
         }
     }
+
+//    private void processClotheBatch(List<Clothe> clotheBatch) {
+//        try {
+//            clothesService.processAndUploadImageBatchWithDelay(clotheBatch);
+//        } catch (Exception e) {
+//            log.error("Batch processing failed", e);
+//            throw new BusinessException(ClotheErrorCode.S3_UPLOAD_FAILED);
+//        }
+//    }
+
+    private void processClotheBatch(List<Clothe> clotheBatch) {
+        for (Clothe clothe : clotheBatch) {
+            String imgFileName = clothe.getImgUrl().substring(clothe.getImgUrl().lastIndexOf('/') + 1);
+
+            String imageS3Url = "https://todayclothes-file.s3.ap-northeast-2.amazonaws.com/clothes/" + imgFileName;
+
+            clothe.updateImage(imageS3Url);
+        }
+        clothesService.saveClothesBatch(clotheBatch);
+    }
+
+
 
     @Async
     public void crawlingProductHead(Category category, WebDriver driver, List<ClotheDto> clotheDtoList) {
@@ -156,6 +209,7 @@ public class SieCrawlerService implements CrawlerService {
             case DRESSER -> "/product/list.html?cate_no=57";
             case BAGS -> "/product/list.html?cate_no=266";
             case JEWELRY -> "/product/list.html?cate_no=86";
+            case PUMPS -> "/product/list.html?cate_no=135";
             default -> null;
         };
     }

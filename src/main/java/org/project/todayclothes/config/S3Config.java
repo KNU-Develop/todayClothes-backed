@@ -1,5 +1,7 @@
 package org.project.todayclothes.config;
 
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -19,6 +21,9 @@ public class S3Config {
 
     @Bean
     public AmazonS3Client amazonS3Client() {
+        ClientConfiguration clientConfiguration = new ClientConfiguration();
+        clientConfiguration.setMaxConnections(50); // 배치 작업을 위한 최대 연결 수 증가
+        clientConfiguration.setProtocol(Protocol.HTTPS);
         BasicAWSCredentials awsCredentials= new BasicAWSCredentials(accessKey, secretKey);
         return (AmazonS3Client) AmazonS3ClientBuilder.standard()
                 .withRegion(region)
