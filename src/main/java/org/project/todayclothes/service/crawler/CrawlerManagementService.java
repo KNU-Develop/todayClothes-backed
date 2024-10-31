@@ -1,6 +1,7 @@
 package org.project.todayclothes.service.crawler;
 
 import lombok.RequiredArgsConstructor;
+import org.project.todayclothes.service.ClothesService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -17,8 +18,9 @@ public class CrawlerManagementService {
 
 //    private final ZaraCrawlerService zaraCrawlerService;
     private final SieCrawlerService sieCrawlerService;
+    private final ClothesService clothesService;
 
-    @EventListener(ApplicationReadyEvent.class)
+//    @EventListener(ApplicationReadyEvent.class)
     public void executeOnceOnStartup() {
         if (MODE.equals("dev")) {
             sieCrawlerService.crawling();
@@ -27,7 +29,7 @@ public class CrawlerManagementService {
     }
 
 
-    @Scheduled(cron = "0 0 0 * * 3")
+//    @Scheduled(cron = "0 0 0 * * 3")
     public void executePeriodically() {
         if (MODE.equals("deploy")) {
             sieCrawlerService.crawling();

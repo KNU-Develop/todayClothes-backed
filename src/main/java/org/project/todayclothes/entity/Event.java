@@ -99,17 +99,17 @@ public class Event {
         }
     }
 
-    public Event changeImagePath(String imagePath) {
-        if (imagePath == null || imagePath.isEmpty()) {
+    public Event updateImagePath(List<String> myImgPaths) {
+        if (myImgPaths == null || myImgPaths.isEmpty()) {
             throw new BusinessException(EventErrorCode.EVENT_UPDATE_FAILED);
         }
-        this.imagePath = imagePath;
+        this.myImgPaths = new ArrayList<>(myImgPaths);
         return this;
     }
 
     public Event associateReview(Review review) {
         if (this.review != null) {
-            throw new IllegalStateException("Review is already associated with this event.");
+            throw new BusinessException(EventErrorCode.EVENT_UPDATE_FAILED);
         }
         this.review = review;
         return this;

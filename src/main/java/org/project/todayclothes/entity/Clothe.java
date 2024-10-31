@@ -1,9 +1,6 @@
 package org.project.todayclothes.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,8 +17,10 @@ public class Clothe {
     private String name;
     private Integer price;
     private Category category;
-    @Column(length = 65535)
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String description;
+    @Column(unique = true)
     private String imgUrl;
     private String image;
 

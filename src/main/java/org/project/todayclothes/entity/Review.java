@@ -7,6 +7,9 @@ import org.project.todayclothes.exception.BusinessException;
 import org.project.todayclothes.exception.code.ReviewErrorCode;
 import org.project.todayclothes.global.Feedback;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Entity
 @Getter
@@ -18,14 +21,24 @@ public class Review {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Feedback feedback;
-    private String imageFile;
+
+    @ElementCollection
+    @CollectionTable(name = "review_images", joinColumns = @JoinColumn(name = "review_id"))
+    @Column(name = "image_path")
+    private List<String> imageFiles = new ArrayList<>();
 
     @OneToOne(mappedBy = "review", fetch = FetchType.LAZY)
     private Event event;
 
-    public Review(Feedback feedback, String imageFile) {
+    public Review(Feedback feedback, List<String> imageFiles) {
+        if (feedback == null) {
+            throw new BusinessException(ReviewErrorCode.INVALID_FEEDBACK_ENUM);
+        }
+        if (imageFiles.size() > 4) {
+            throw new BusinessException(ReviewErrorCode.FILE_SIZE_EXCEEDED);
+        }
         this.feedback = feedback;
-        this.imageFile = imageFile;
+        this.imageFiles = imageFiles;
     }
     public void updateFeedback(Feedback feedback) {
         if (feedback == null) {
@@ -33,7 +46,14 @@ public class Review {
         }
         this.feedback = feedback;
     }
-    public void updateImageFile(String imageFile) {
-        this.imageFile = imageFile;
+    public void addImageFile(String imageFile) {
+        if (this.imageFiles.size() >= 4) {
+            throw new BusinessException(ReviewErrorCode.FILE_SIZE_EXCEEDED);
+        }
+        this.imageFiles.add(imageFile);
+    }
+
+    public void removeImageFile(String imageFile) {
+        this.imageFiles.remove(imageFile);
     }
 }
