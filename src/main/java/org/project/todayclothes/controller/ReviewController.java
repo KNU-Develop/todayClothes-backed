@@ -13,6 +13,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/clothes/review")
 @RequiredArgsConstructor
@@ -24,12 +26,12 @@ public class ReviewController {
     public ResponseEntity<Api_Response<ReviewReq>> createReview(
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @RequestPart(value = "reviewReq") ReviewReq reviewReq,
-            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
+            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles) {
         String socialId = customOAuth2User.getSocialId();
         if (socialId == null || socialId.isEmpty()) {
             return ApiResponseUtil.createErrorResponse(CommonErrorCode.UNAUTHORIZED_MEMBER);
         }
-        reviewService.createReview(socialId,reviewReq, imageFile);
+        reviewService.createReview(socialId,reviewReq, imageFiles);
         return ApiResponseUtil.createSuccessResponse(SuccessCode.INSERT_SUCCESS.getMessage());
     }
 
@@ -38,12 +40,12 @@ public class ReviewController {
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @PathVariable Long reviewId,
             @RequestPart(value = "reviewReq") ReviewReq reviewReq,
-            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
+            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles) {
         String socialId = customOAuth2User.getSocialId();
         if (socialId == null || socialId.isEmpty()) {
             return ApiResponseUtil.createErrorResponse(CommonErrorCode.UNAUTHORIZED_MEMBER);
         }
-        reviewService.updateReview(socialId, reviewId, reviewReq, imageFile);
+        reviewService.updateReview(socialId, reviewId, reviewReq, imageFiles);
         return ApiResponseUtil.createSuccessResponse(SuccessCode.UPDATE_SUCCESS.getCode());
     }
 }

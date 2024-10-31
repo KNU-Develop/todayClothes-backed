@@ -18,15 +18,15 @@ import java.net.URL;
 @Service
 public class BackgroundRemoverService {
 
-    //private static final String PYTHON_SCRIPT_PATH = "C:\\Users\\lydbs\\PycharmProjects\\pythonProject\\remove_bg.py";
-    private static final String PYTHON_SCRIPT_PATH = "/app/scripts/remove_bg.py";
-    private static final String TEMP_DIR = "/app/temp/img/";
+    private static final String PYTHON_SCRIPT_PATH = "C:\\deploy\\todayClothes-backed\\remove_bg.py";
+    //private static final String PYTHON_SCRIPT_PATH = "/app/scripts/remove_bg.py";
+    private static final String TEMP_DIR = "C:\\deploy\\todayClothes-backed\\src\\main\\resources\\img";
 
     public String removeBackground(String imageUrl) {
         try {
             String downloadedImagePath = downloadImage(imageUrl);
             log.info("Image downloaded to: {}", downloadedImagePath);
-            String processedImagePath = TEMP_DIR + "/processed_" + System.currentTimeMillis() + ".png";
+            String processedImagePath = TEMP_DIR + extractFileName(imageUrl);
             runPythonScript(downloadedImagePath, processedImagePath);
             return processedImagePath;
 
@@ -94,9 +94,13 @@ public class BackgroundRemoverService {
         }
     }
 
+    private String extractFileName(String imageUrl) {
+        return "processed_" + imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+    }
+
     private void runPythonScript(String inputImagePath, String outputImagePath) throws IOException, InterruptedException {
-        //String command = "C:\\Users\\lydbs\\PycharmProjects\\pythonProject\\venv\\Scripts\\python.exe " + PYTHON_SCRIPT_PATH + " " + inputImagePath + " " + outputImagePath;
-        String command = "python3 " + PYTHON_SCRIPT_PATH + " " + inputImagePath + " " + outputImagePath;
+        String command = "C:\\Users\\lydbs\\PycharmProjects\\pythonProject\\venv\\Scripts\\python.exe " + PYTHON_SCRIPT_PATH + " " + inputImagePath + " " + outputImagePath;
+        //String command = "python3 " + PYTHON_SCRIPT_PATH + " " + inputImagePath + " " + outputImagePath;
 
         ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
         processBuilder.redirectErrorStream(true);
@@ -121,5 +125,4 @@ public class BackgroundRemoverService {
             throw new BusinessException(ClotheErrorCode.PYTHON_SERVER_ERROR);
         }
     }
-
 }
