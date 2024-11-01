@@ -2,6 +2,7 @@ package org.project.todayclothes.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.project.todayclothes.dto.crawling.ClotheDto;
 import org.project.todayclothes.entity.Clothe;
 import org.project.todayclothes.repository.ClotheRepository;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -69,4 +71,10 @@ public class ClothesService {
         }
     }
 
+    @Transactional
+    public void saveClotheDate(List<ClotheDto> clotheDtoList){
+        for (ClotheDto clotheDto : clotheDtoList) {
+            clotheRepository.save(new Clothe(clotheDto));
+        }
+    }
 }
