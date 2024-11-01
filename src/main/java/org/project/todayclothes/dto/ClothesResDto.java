@@ -7,11 +7,15 @@ import org.project.todayclothes.global.Feedback;
 import org.project.todayclothes.global.Style;
 import org.project.todayclothes.global.Type;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @RequiredArgsConstructor
 public class ClothesResDto {
     private final Long clothesId;
     private final String imgPath;
+    private final List<String> myImgPaths;
     private final String location;
     private final ReviewDto review;
     private final Type type;
@@ -30,11 +34,13 @@ public class ClothesResDto {
     }
 
     public static ClothesResDto from(Event event) {
+        ReviewDto reviewDto = event.getReview() != null ? new ReviewDto(event.getReview().getFeedback()) : null;
         return new ClothesResDto(
                 event.getId(),
                 event.getImagePath(),
+                event.getMyImgPaths(),
                 event.getLocation(),
-                event.getReview() != null ? new ReviewDto(event.getReview().getFeedback()) : null,
+                reviewDto,
                 event.getType(),
                 event.getStyle(),
                 event.getWeather().getWeather(),

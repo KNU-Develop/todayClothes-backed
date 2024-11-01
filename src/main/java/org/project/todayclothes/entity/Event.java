@@ -7,10 +7,15 @@ import lombok.Setter;
 import org.project.todayclothes.dto.EventReqDto;
 import org.project.todayclothes.exception.BusinessException;
 import org.project.todayclothes.exception.code.EventErrorCode;
+import org.project.todayclothes.exception.code.UserErrorCode;
+import org.project.todayclothes.global.Gender;
 import org.project.todayclothes.global.Style;
+import org.project.todayclothes.global.Timezone;
 import org.project.todayclothes.global.Type;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -25,8 +30,19 @@ public class Event {
     private Type type;
     @Enumerated(EnumType.STRING)
     private Style style;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+    @Enumerated(EnumType.STRING)
+    private Timezone timezone;
+
     private String imagePath;
+    @ElementCollection
+    @CollectionTable(name = "event_images", joinColumns = @JoinColumn(name = "event_id"))
+    @Column(name = "my_image_path")
+    private List<String> myImgPaths = new ArrayList<>();
+
     private String comment;
+    private LocalDateTime createdAt;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "review_id")
@@ -41,13 +57,28 @@ public class Event {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Event(EventReqDto eventReqDto, Weather weather,User user) {
+    public Event(EventReqDto eventReqDto, Weather weather, User user) {
+        if (eventReqDto == null) {
+            throw new BusinessException(EventErrorCode.EVENT_CREATION_FAILED);
+        }
+        if (user == null) {
+            throw new BusinessException(UserErrorCode.USER_NOT_FOUND);
+        }
         this.startTime = eventReqDto.getStartTime();
         this.location = eventReqDto.getLocation();
         this.type = eventReqDto.getType();
         this.style = eventReqDto.getStyle();
+        this.gender = eventReqDto.getGender();
+        this.timezone = eventReqDto.getTimezone();
         this.weather = weather;
         this.user = user;
+        this.createdAt = LocalDateTime.now();
+    }
+
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 
     public void updateEvent(EventReqDto eventReqDto) {
@@ -68,17 +99,17 @@ public class Event {
         }
     }
 
-    public Event changeImagePath(String imagePath) {
-        if (imagePath == null || imagePath.isEmpty()) {
+    public Event updateImagePath(List<String> myImgPaths) {
+        if (myImgPaths == null || myImgPaths.isEmpty()) {
             throw new BusinessException(EventErrorCode.EVENT_UPDATE_FAILED);
         }
-        this.imagePath = imagePath;
+        this.myImgPaths = new ArrayList<>(myImgPaths);
         return this;
     }
 
     public Event associateReview(Review review) {
         if (this.review != null) {
-            throw new IllegalStateException("Review is already associated with this event.");
+            throw new BusinessException(EventErrorCode.EVENT_UPDATE_FAILED);
         }
         this.review = review;
         return this;

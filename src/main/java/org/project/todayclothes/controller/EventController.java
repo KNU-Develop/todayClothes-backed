@@ -35,7 +35,7 @@ public class EventController {
     }
 
     @GetMapping
-    public ResponseEntity<Api_Response<List<ClothesResDto>>> getAllEvents(
+    public ResponseEntity<Api_Response<List<ClothesResDto>>> getMyEvents(
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User) {
         String socialId = customOAuth2User.getSocialId();
         if (socialId == null || socialId.isEmpty()) {
@@ -44,6 +44,19 @@ public class EventController {
         List<ClothesResDto> records = eventService.getUserClothesRecords(socialId);
         return ApiResponseUtil.createSuccessResponse(SuccessCode.SELECT_SUCCESS.getCode(), records);
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<Api_Response<List<ClothesResDto>>> getAllEvents(
+        @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
+        @RequestParam int page, @RequestParam int size,
+        @RequestParam(required = false) Long userId) {
+    String socialId = customOAuth2User.getSocialId();
+    if (socialId == null || socialId.isEmpty()) {
+        return ApiResponseUtil.createErrorResponse(CommonErrorCode.UNAUTHORIZED_MEMBER);
+    }
+    List<ClothesResDto> events = eventService.getAllEvents(page, size, socialId, userId);
+    return ApiResponseUtil.createSuccessResponse(SuccessCode.SELECT_SUCCESS.getCode(), events);
+}
 
     @PutMapping("/{eventId}")
     public ResponseEntity<Api_Response<EventResDto>> updateEvent(

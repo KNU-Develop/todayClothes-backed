@@ -87,22 +87,22 @@ public class ZaraCrawlerService {
                         log.info("이미 처리가 완료된 데이터입니다. imgUrl: {}", existingClothe.getImgUrl());
                         continue;
                     }
-                    try {
-                        clothesService.processAndUploadImage(existingClothe);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+//                    try {
+//                        clothesService.processAndUploadImageBatchWithDelay(existingClothe);
+//                    } catch (IOException e) {
+//                        throw new RuntimeException(e);
+//                    }
                     continue;
                 }
 
                 Clothe newClothe = new Clothe(clotheDto);
                 clotheRepository.save(newClothe);
 
-                try {
-                    clothesService.processAndUploadImage(newClothe);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+//                try {
+//                    clothesService.processAndUploadImageBatchWithDelay(newClothe);
+//                } catch (IOException e) {
+//                    throw new RuntimeException(e);
+//                }
             }
         } finally {
             driver.quit(); // 전체 크롤링이 끝난 후 드라이버 종료

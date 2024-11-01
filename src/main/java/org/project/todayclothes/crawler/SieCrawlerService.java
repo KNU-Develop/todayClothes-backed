@@ -59,7 +59,7 @@ public class SieCrawlerService extends CrawlerService {
     private void crawlingProductHead(Category category, List<ClotheDto> clotheDtoList) {
         String url = BASE_URL + getCrawlingUrl(category);
         try {
-            for (int page = 1; page <= 3; ++page) {
+            for (int page = 1; page <= 2; ++page) {
                 try {
                     connectPage(driver, url);
                 } catch (Exception e) {

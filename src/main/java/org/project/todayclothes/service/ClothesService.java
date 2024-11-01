@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -23,31 +25,56 @@ public class ClothesService {
     private final S3UploadService s3UploadService;
     private final BackgroundRemoverService backgroundRemoverService;
 
-    public void processAndUploadImage(Clothe clothe) throws IOException {
-        if (s3UploadService.shouldSkipProcessing(clothe.getImgUrl())) {
-            return;
+    @Transactional
+    public void saveClothe(Clothe clothe) {
+        clotheRepository.save(clothe);
+    }
+    public void processAndUploadImageBatchWithDelay(List<Clothe> clothes) {
+        List<String> downloadedPaths = new ArrayList<>();
+        List<String> processedPaths = new ArrayList<>();
+
+        for (int i = 0; i < clothes.size(); i++) {
+            Clothe clothe = clothes.get(i);
+            if (s3UploadService.shouldSkipProcessing(clothe.getImgUrl())) {
+                continue;
+            }
+
+            String downloadedImagePath = null;
+            String processedImagePath = null;
+            try {
+                downloadedImagePath = backgroundRemoverService.downloadImage(clothe.getImgUrl());
+                processedImagePath = backgroundRemoverService.removeBackground(downloadedImagePath);
+
+                downloadedPaths.add(downloadedImagePath);
+                processedPaths.add(processedImagePath);
+
+                String newImageUrl = s3UploadService.savePhoto(processedImagePath, clothe.getImgUrl());
+
+                clothe.updateImage(newImageUrl);
+                saveClothe(clothe);
+
+            } catch (IOException e) {
+                log.error("Image processing failed for URL: {}", clothe.getImgUrl(), e);
+            }
+            if ((i + 1) % 10 == 0) {
+                try {
+                    TimeUnit.SECONDS.sleep(30); // Adjust delay as needed
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.error("Interrupted while waiting", e);
+                }
+                deleteLocalFiles(downloadedPaths);
+                deleteLocalFiles(processedPaths);
+                downloadedPaths.clear();
+                processedPaths.clear();
+            }
         }
-
-        String downloadedImagePath = null;
-        String processedImagePath = null;
-        try {
-
-            downloadedImagePath = backgroundRemoverService.downloadImage(clothe.getImgUrl());
-
-            processedImagePath = backgroundRemoverService.removeBackground(downloadedImagePath);
-
-            String newImageUrl = s3UploadService.savePhoto(processedImagePath);
-
-            clothe.updateImage(newImageUrl);
-            clotheRepository.save(clothe);
-
-        } finally {
-            if (downloadedImagePath != null) {
-                deleteLocalFile(downloadedImagePath);
-            }
-            if (processedImagePath != null) {
-                deleteLocalFile(processedImagePath);
-            }
+        deleteLocalFiles(downloadedPaths);
+        deleteLocalFiles(processedPaths);
+    }
+    public void deleteLocalFiles(List<String> filePaths) {
+        for (String filePath : filePaths) {
+            deleteLocalFile(filePath);
         }
     }
 
@@ -60,15 +87,12 @@ public class ClothesService {
             } else {
                 log.warn("File does not exist, cannot delete: {}", filePath);
             }
-
-            if (Files.exists(path)) {
-                log.error("Failed to delete file: {}", filePath);
-            } else {
-                log.info("File deletion confirmed: {}", filePath);
-            }
         } catch (IOException e) {
             log.error("Error occurred while deleting the file: {}", filePath, e);
         }
+    }
+    public void saveClothesBatch(List<Clothe> clotheBatch) {
+        clotheRepository.saveAll(clotheBatch);  // 일괄 저장
     }
 
     @Transactional
