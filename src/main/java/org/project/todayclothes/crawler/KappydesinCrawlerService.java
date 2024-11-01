@@ -1,4 +1,4 @@
-package org.project.todayclothes.service.crawler;
+package org.project.todayclothes.crawler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.*;
@@ -8,7 +8,6 @@ import org.project.todayclothes.component.WebDriverFactory;
 import org.project.todayclothes.dto.crawling.ClotheDto;
 import org.project.todayclothes.global.Category;
 import org.project.todayclothes.global.PRODUCT_INFO;
-import org.project.todayclothes.repository.ClotheRepository;
 import org.project.todayclothes.service.ClothesService;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.project.todayclothes.global.Category.*;
 import static org.project.todayclothes.global.PRODUCT_INFO.*;
 import static org.project.todayclothes.global.code.CrawlingSuccessCode.*;
 import static org.project.todayclothes.exception.code.CrawlingErrorCode.*;
@@ -31,8 +29,8 @@ public class KappydesinCrawlerService extends CrawlerService {
     private final ClothesService clothesService;
 
     public KappydesinCrawlerService(WebDriverFactory webDriverFactory, ClothesService clothesService) throws MalformedURLException {
-        this.clothesService = clothesService;
         this.driver = webDriverFactory.createWebDriver();
+        this.clothesService = clothesService;
     }
 
     @Override
@@ -81,6 +79,7 @@ public class KappydesinCrawlerService extends CrawlerService {
                         .price(price)
                         .imgUrl(imgUrl)
                         .link(link)
+                        .category(category)
                         .build());
             }
             if (size == 0) {

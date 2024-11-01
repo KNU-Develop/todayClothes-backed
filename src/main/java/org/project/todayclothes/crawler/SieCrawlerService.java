@@ -1,20 +1,13 @@
-package org.project.todayclothes.service.crawler;
+package org.project.todayclothes.crawler;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.*;
 import org.project.todayclothes.component.WebDriverFactory;
 import org.project.todayclothes.dto.crawling.ClotheDto;
-import org.project.todayclothes.entity.Clothe;
-import org.project.todayclothes.exception.code.CrawlingErrorCode;
 import org.project.todayclothes.global.Category;
 import org.project.todayclothes.global.PRODUCT_INFO;
-import org.project.todayclothes.global.code.CrawlingSuccessCode;
-import org.project.todayclothes.repository.ClotheRepository;
 import org.project.todayclothes.service.ClothesService;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -22,7 +15,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.project.todayclothes.global.Category.*;
 import static org.project.todayclothes.global.PRODUCT_INFO.*;
 import static org.project.todayclothes.global.code.CrawlingSuccessCode.*;
 import static org.project.todayclothes.exception.code.CrawlingErrorCode.*;
@@ -35,8 +27,8 @@ public class SieCrawlerService extends CrawlerService {
     private final ClothesService clothesService;
 
     public SieCrawlerService(WebDriverFactory webDriverFactory, ClothesService clothesService) throws MalformedURLException {
-        this.clothesService = clothesService;
         this.driver = webDriverFactory.createWebDriver();
+        this.clothesService = clothesService;
     }
     @Override
     public void crawling(String name, Category[] categories) {
@@ -86,6 +78,7 @@ public class SieCrawlerService extends CrawlerService {
                             .price(price)
                             .imgUrl(imgUrl)
                             .link(link)
+                            .category(category)
                             .build());
                 }
                 if (size == 0) {
@@ -116,7 +109,7 @@ public class SieCrawlerService extends CrawlerService {
     private int getProductCount() {
         try {
             List<WebElement> productElements = driver.findElements(
-                    By.cssSelector("#wrap > div > div.page-full-width > div > ul > li")
+                    By.cssSelector(getSelector(PRODUCT_LIST))
             );
             return productElements.size();
         } catch (TimeoutException e) {
@@ -147,10 +140,10 @@ public class SieCrawlerService extends CrawlerService {
     }
     @Override
     protected String getSelector(PRODUCT_INFO target) {
-        if (target == CONTENT) {
-            return getSelector(target, -1);
-        }
-        return null;
+        return switch (target) {
+            case CONTENT, PRODUCT_LIST -> getSelector(target, -1);
+            default -> null;
+        };
     }
     @Override
     protected String getSelector(PRODUCT_INFO target, int no) {
@@ -159,6 +152,7 @@ public class SieCrawlerService extends CrawlerService {
                     " > a > span", no);
             case PRICE -> String.format("#wrap > div > div.page-full-width > div > ul > li:nth-child(%d) > div.product-item__text-wrapper > div > span.display > span.original-price", no);
             case CONTENT -> "#productInfo > div.product-single__offer > div > div.xans-element-.xans-product.xans-product-detail.product-single__header > div.product-single__simple-desc";
+            case PRODUCT_LIST -> "#wrap > div > div.page-full-width > div > ul > li";
             case IMG_URL -> String.format("#wrap > div > div.page-full-width > div > ul > li:nth-child(%d) > div.product-item__image-wrapper > a > " +
                     "div > div", no);
             case LINK -> String.format("#wrap > div > div.page-full-width > div > ul > li:nth-child(%d) > div.product-item__image-wrapper > a",

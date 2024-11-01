@@ -1,4 +1,4 @@
-package org.project.todayclothes.service.crawler;
+package org.project.todayclothes.crawler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

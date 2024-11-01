@@ -1,32 +1,22 @@
-package org.project.todayclothes.service.crawler;
+package org.project.todayclothes.crawler;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.project.todayclothes.dto.crawling.ClotheDto;
-import org.project.todayclothes.entity.Clothe;
 import org.project.todayclothes.exception.code.CrawlingErrorCode;
 import org.project.todayclothes.global.Category;
 import org.project.todayclothes.global.PRODUCT_INFO;
-import org.project.todayclothes.repository.ClotheRepository;
-import org.project.todayclothes.service.ClothesService;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.net.MalformedURLException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.project.todayclothes.global.PRODUCT_INFO.CONTENT;
-import static org.project.todayclothes.global.code.CrawlingSuccessCode.*;
-import static org.project.todayclothes.global.code.CrawlingSuccessCode.END_CRAWLING;
 
 @Slf4j
 public abstract class CrawlerService {
-    protected static final int DEFAULT_WAIT_SEC = 20;
+    protected static final int DEFAULT_WAIT_SEC = 10;
     @Async
     public abstract void crawling(String name, Category[] categories);
 
@@ -75,9 +65,9 @@ public abstract class CrawlerService {
                 .executeScript("return document.readyState").equals(finalReadyState));
     }
 
-    protected void logProgress(int current, int total) {
+    protected void logProgress(long current, long total) {
         double progress = (current / (double) total) * 100;
-        System.out.printf("\rcrawling...(%2.2f%%)", progress);
+        System.out.printf("\rprogress...(%2.2f%%)", progress);
         if (current == total) {
             System.out.println();
         }
