@@ -2,6 +2,7 @@ package org.project.todayclothes.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.project.todayclothes.dto.crawling.ClotheDto;
 import org.project.todayclothes.entity.Clothe;
 import org.project.todayclothes.repository.ClotheRepository;
 import org.springframework.stereotype.Service;
@@ -92,5 +93,12 @@ public class ClothesService {
     }
     public void saveClothesBatch(List<Clothe> clotheBatch) {
         clotheRepository.saveAll(clotheBatch);  // 일괄 저장
+    }
+
+    @Transactional
+    public void saveClotheDate(List<ClotheDto> clotheDtoList){
+        for (ClotheDto clotheDto : clotheDtoList) {
+            clotheRepository.save(new Clothe(clotheDto));
+        }
     }
 }
