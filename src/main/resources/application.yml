@@ -38,7 +38,7 @@ spring:
       on-profile: common
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
 #      naming:
 #        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     properties:
