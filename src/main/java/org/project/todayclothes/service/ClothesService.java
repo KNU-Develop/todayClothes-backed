@@ -2,12 +2,17 @@ package org.project.todayclothes.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.project.todayclothes.dto.crawling.ClotheDto;
 import org.project.todayclothes.entity.Clothe;
+import org.project.todayclothes.exception.BusinessException;
+import org.project.todayclothes.exception.code.ClotheErrorCode;
 import org.project.todayclothes.repository.ClotheRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,6 +28,36 @@ public class ClothesService {
     private final ClotheRepository clotheRepository;
     private final S3UploadService s3UploadService;
     private final BackgroundRemoverService backgroundRemoverService;
+
+    public String generateS3Url(String siteName, String originalImageUrl) throws UnsupportedEncodingException {
+        String fileName;
+        String folderName = siteName.toLowerCase() + "/"; // 폴더명을 siteName으로 설정
+
+        switch (siteName.toLowerCase()) {
+            case "kream":
+                fileName = originalImageUrl.substring(originalImageUrl.lastIndexOf('/') + 1);
+                int queryIndex = fileName.indexOf("?");
+                if (queryIndex != -1) {
+                    String baseFileName = fileName.substring(0, queryIndex);
+                    String queryPart = fileName.substring(queryIndex);
+                    fileName = baseFileName + URLEncoder.encode(queryPart, "UTF-8");
+                }
+                break;
+
+            case "kappy":
+                fileName = originalImageUrl.substring(originalImageUrl.lastIndexOf('/') + 1).replaceAll("\\?.*", "");
+                if (!fileName.endsWith(".jpg")) {
+                    fileName = fileName.replaceAll("\\..*$", "") + ".png";
+                }
+                break;
+
+            default:
+                fileName = originalImageUrl.substring(originalImageUrl.lastIndexOf('/') + 1);
+                break;
+        }
+
+        return "https://todayclothes-file.s3.ap-northeast-2.amazonaws.com/" + folderName + fileName;
+    }
 
     @Transactional
     public void saveClothe(Clothe clothe) {
@@ -92,5 +127,12 @@ public class ClothesService {
     }
     public void saveClothesBatch(List<Clothe> clotheBatch) {
         clotheRepository.saveAll(clotheBatch);  // 일괄 저장
+    }
+
+    @Transactional
+    public void saveClotheDate(List<ClotheDto> clotheDtoList){
+        for (ClotheDto clotheDto : clotheDtoList) {
+            clotheRepository.save(new Clothe(clotheDto));
+        }
     }
 }

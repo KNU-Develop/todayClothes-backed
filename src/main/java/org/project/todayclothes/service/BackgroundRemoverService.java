@@ -1,5 +1,6 @@
 package org.project.todayclothes.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.project.todayclothes.exception.BusinessException;
 import org.project.todayclothes.exception.code.ClotheErrorCode;
@@ -13,20 +14,60 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class BackgroundRemoverService {
+
+    private final S3UploadService s3UploadService;
 
     private static final String PYTHON_SCRIPT_PATH = "C:\\deploy\\todayClothes-backed\\remove_bg.py";
     //private static final String PYTHON_SCRIPT_PATH = "/app/scripts/remove_bg.py";
     private static final String TEMP_DIR = "C:\\deploy\\todayClothes-backed\\src\\main\\resources\\img";
 
+
+    public String processImageAndUploadToS3(String imageUrl) {
+        try {
+            String processedImagePath = removeBackground(imageUrl);
+            log.info("배경 제거 완료, 경로: {}", processedImagePath);
+
+            String s3Url = s3UploadService.savePhoto(processedImagePath, imageUrl);
+            log.info("S3 업로드 완료, S3 URL: {}", s3Url);
+            return s3Url;
+        } catch (Exception e) {
+            log.error("이미지 처리 및 S3 업로드 중 오류 발생", e);
+            throw new BusinessException(ClotheErrorCode.S3_UPLOAD_FAILED);
+        }
+    }
+
+//    public String removeBackground(String imageUrl) {
+//        try {
+//            String downloadedImagePath = downloadImage(imageUrl);
+//            log.info("Image downloaded to: {}", downloadedImagePath);
+//            String processedImagePath = TEMP_DIR + extractFileName(imageUrl).replace(".jpg", ".png");
+//            runPythonScript(downloadedImagePath, processedImagePath);
+//            return processedImagePath;
+//
+//        } catch (IOException e) {
+//            throw new BusinessException(ClotheErrorCode.BACKGROUND_DELETE_FAILED);
+//        } catch (InterruptedException e) {
+//            Thread.currentThread().interrupt();
+//            throw new BusinessException(ClotheErrorCode.BACKGROUND_DELETE_FAILED);
+//        } catch (Exception e) {
+//            throw new BusinessException(ClotheErrorCode.BACKGROUND_DELETE_FAILED);
+//        }
+//    }
     public String removeBackground(String imageUrl) {
         try {
             String downloadedImagePath = downloadImage(imageUrl);
             log.info("Image downloaded to: {}", downloadedImagePath);
-            String processedImagePath = TEMP_DIR + extractFileName(imageUrl);
+
+            // 확장자만 추출하고 쿼리 파라미터 제거
+            String cleanImageUrl = cleanUrlExtension(imageUrl);
+            String processedImagePath = TEMP_DIR + extractFileName(cleanImageUrl).replace(".jpg", ".png");
+
             runPythonScript(downloadedImagePath, processedImagePath);
             return processedImagePath;
 
@@ -38,6 +79,12 @@ public class BackgroundRemoverService {
         } catch (Exception e) {
             throw new BusinessException(ClotheErrorCode.BACKGROUND_DELETE_FAILED);
         }
+    }
+    private String cleanUrlExtension(String url) {
+        if (url.contains("?")) {
+            url = url.substring(0, url.indexOf("?"));
+        }
+        return url;
     }
 
     public String downloadImage(String imagePathOrUrl) throws IOException {
