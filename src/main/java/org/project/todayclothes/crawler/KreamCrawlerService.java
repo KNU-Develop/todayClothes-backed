@@ -7,12 +7,16 @@ import org.project.todayclothes.component.WebDriverFactory;
 import org.project.todayclothes.dto.crawling.ClotheDto;
 import org.project.todayclothes.global.Category;
 import org.project.todayclothes.global.PRODUCT_INFO;
+import org.project.todayclothes.service.BackgroundRemoverService;
 import org.project.todayclothes.service.ClothesService;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.project.todayclothes.exception.code.CrawlingErrorCode.*;
 import static org.project.todayclothes.global.Category.*;
@@ -27,7 +31,7 @@ public class KreamCrawlerService extends CrawlerService {
     private final WebDriver driver;
     private final ClothesService clothesService;
 
-    public KreamCrawlerService(WebDriverFactory webDriverFactory, ClothesService clothesService) throws MalformedURLException {
+    public KreamCrawlerService(WebDriverFactory webDriverFactory, ClothesService clothesService ) throws MalformedURLException {
         this.driver = webDriverFactory.createWebDriver();
         this.clothesService = clothesService;
     }
@@ -36,10 +40,11 @@ public class KreamCrawlerService extends CrawlerService {
     public void crawling(String name, Category[] categories) {
         log.info(name + START_CRAWLING.getMessage());
         List<ClotheDto> clotheDtoList = new ArrayList<>();
+        Set<String> processedUrls = new HashSet<>();
         try {
             log.info(START_CRAWLING_ITEM_HEADER.getMessage());
             for (Category category : categories) {
-                crawlingProductHead(category, clotheDtoList);
+                crawlingProductHead(category, clotheDtoList, processedUrls);
             }
             log.info(END_CRAWLING_ITEM_HEADER.getMessage());
             log.info("크롤링 데이터(개) : "+ clotheDtoList.size());
@@ -49,7 +54,7 @@ public class KreamCrawlerService extends CrawlerService {
             driver.quit();
         }
     }
-    private void crawlingProductHead(Category category, List<ClotheDto> clotheDtoList) {
+    private void crawlingProductHead(Category category, List<ClotheDto> clotheDtoList, Set<String> processedUrls) {
         String url = BASE_URL + getCrawlingUrl(category);
         try {
             try {
@@ -67,17 +72,26 @@ public class KreamCrawlerService extends CrawlerService {
                 String name = waitForElement(driver, getSelector(NAME, i)).getText();
                 int price = Integer.parseInt(waitForElement(driver, getSelector(PRICE, i)).getText().replaceAll("[^0-9]", ""));
                 String imgUrl = waitForElement(driver, getSelector(IMG_URL, i)).getAttribute("src");
+                String image = clothesService.generateS3Url("kream", imgUrl);
                 String link = waitForElement(driver, getSelector(LINK, i)).getAttribute("href");
+                if (processedUrls.contains(imgUrl)) {
+                    log.warn("중복된 이미지 URL: " + imgUrl);
+                    continue;
+                }
+                processedUrls.add(imgUrl);
                 clotheDtoList.add(ClotheDto.builder()
                         .name(name)
                         .price(price)
                         .imgUrl(imgUrl)
+                        .image(image)
                         .link(link)
                         .category(category)
                         .build());
             }
         } catch (TimeoutException e) {
             log.warn(CONTENT_LOAD_TIMEOUT.getMessage());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
     }
     private void scrollToPageEnd() throws InterruptedException {

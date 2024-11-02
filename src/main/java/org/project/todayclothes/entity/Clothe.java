@@ -30,6 +30,7 @@ public class Clothe {
         this.category = groupingCategory(clotheDto.getCategory());
         this.description = clotheDto.getDescription();
         this.imgUrl = clotheDto.getImgUrl();
+        this.image = clotheDto.getImage();
         this.infoUrl = clotheDto.getLink();
     }
 

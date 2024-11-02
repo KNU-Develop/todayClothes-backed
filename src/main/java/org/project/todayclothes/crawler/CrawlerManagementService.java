@@ -21,17 +21,17 @@ public class CrawlerManagementService {
     private final KappydesinCrawlerService kappydesinCrawlerService;
     private final KreamCrawlerService kreamCrawlerService;
 
-    @EventListener(ApplicationReadyEvent.class)
+    //@EventListener(ApplicationReadyEvent.class)
     public void executeOnceOnStartup() {
         if (MODE.equals("dev")) {
-            sieCrawlerService.crawling("SIE", new Category[]{TOPS_TEE, TOPS_KNIT});
-            kappydesinCrawlerService.crawling("Kappydesin", new Category[]{TOP});
+            sieCrawlerService.crawling("SIE", new Category[]{TOPS_TEE, TOPS_KNIT, TOPS_BLOUSE, PANTS, SKIRTS, OUTERS, NEW_WINTER, BAGS, JEWELRY});
+            kappydesinCrawlerService.crawling("Kappydesin", new Category[]{TOP, OUTER, PANTS, SKIRT, ACC});
             kreamCrawlerService.crawling("Kream", new Category[]{SHOES});
         }
     }
 
 
-    @Scheduled(cron = "0 0 0 2 * SAT", zone = "Asia/Seoul")
+    //@Scheduled(cron = "0 0 0 2 * SAT", zone = "Asia/Seoul")
     public void executePeriodically() {
         if (MODE.equals("deploy")) {
             sieCrawlerService.crawling("SIE", new Category[]{TOPS_TEE, TOPS_KNIT, TOPS_BLOUSE, PANTS, SKIRTS, OUTERS, NEW_WINTER, DRESSER, BAGS, JEWELRY});

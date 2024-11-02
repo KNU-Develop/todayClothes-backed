@@ -13,15 +13,17 @@ public class ClotheDto {
     private String description;
     private String link;
     private String imgUrl;
+    private String image;
 
     @Builder
-    public ClotheDto(String name, Integer price, Category category, String description, String link, String imgUrl) {
+    public ClotheDto(String name, Integer price, Category category, String description, String link, String imgUrl, String image) {
         this.name = name;
         this.price = price;
         this.category = category;
         this.description = description;
         this.link = link;
         this.imgUrl = imgUrl;
+        this.image = image;
     }
 
     public void updateDescription(String newDescription) {
@@ -38,6 +40,7 @@ public class ClotheDto {
                 ", description='" + description + '\'' +
                 ", link='" + link + '\'' +
                 ", imgUrl='" + imgUrl + '\'' +
+                ", image='" + imgUrl + '\'' +
                 '}';
     }
 }
