@@ -30,7 +30,7 @@ public class S3UploadService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    private static final String CLOTHES_IMG_DIR = "clothes/";
+    private static final String CLOTHES_IMG_DIR = "kream/";
     private static final String REVIEW_IMG_DIR = "reviews/";
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
