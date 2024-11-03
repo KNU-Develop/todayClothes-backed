@@ -1,11 +1,5 @@
 FROM amazoncorretto:17-alpine-jdk
 
-# Python 및 pip 설치
-RUN apk add --no-cache python3 py3-pip
-
-# 스크립트 복사
-COPY remove_bg.py /app/scripts/remove_bg.py
-
 # 한국 시간대 설정
 ENV TZ=Asia/Seoul
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
