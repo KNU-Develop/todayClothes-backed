@@ -26,53 +26,66 @@ import static org.project.todayclothes.exception.code.CrawlingErrorCode.*;
 
 @Service
 @Slf4j
-
 public class KappydesinCrawlerService extends CrawlerService {
     private static final String BASE_URL = "https://kappydesign.com";
-    private final WebDriver driver;
+    private final WebDriverFactory webDriverFactory;
     private final ClothesService clothesService;
 
-    public KappydesinCrawlerService(WebDriverFactory webDriverFactory, ClothesService clothesService) throws MalformedURLException {
-        this.driver = webDriverFactory.createWebDriver();
+    public KappydesinCrawlerService(WebDriverFactory webDriverFactory, ClothesService clothesService) {
+        this.webDriverFactory = webDriverFactory;
         this.clothesService = clothesService;
     }
+
 
     @Override
     public void crawling(String name, Category[] categories) {
         log.info(name + START_CRAWLING.getMessage());
         List<ClotheDto> clotheDtoList = new ArrayList<>();
         Set<String> processedUrls = new HashSet<>();
+
+        WebDriver driver = null; // WebDriver를 여기서 선언
         try {
+            driver = webDriverFactory.createWebDriver();
             log.info(START_CRAWLING_ITEM_HEADER.getMessage());
+
             for (Category category : categories) {
-                crawlingProductHead(category, clotheDtoList, processedUrls);
+                crawlingProductHead(driver, category, clotheDtoList, processedUrls);
             }
+
             log.info(END_CRAWLING_ITEM_HEADER.getMessage());
-            log.info("크롤링 데이터(개) : "+ clotheDtoList.size());
+            log.info("크롤링 데이터(개) : " + clotheDtoList.size());
             log.info(START_CRAWLING_ITEM_INFO.getMessage());
+
             int i = 1;
             int size = clotheDtoList.size();
             for (ClotheDto clotheDto : clotheDtoList) {
                 logProgress(i++, size);
                 crawlingContent(driver, clotheDto);
             }
+
             log.info(END_CRAWLING_ITEM_INFO.getMessage());
             clothesService.saveClotheDate(clotheDtoList);
+        } catch (Exception e) {
+            log.error("크롤링 중 오류 발생", e);
         } finally {
             log.info(name + END_CRAWLING.getMessage());
-            driver.quit();
+            if (driver != null) {
+                driver.quit(); // WebDriver 자원 해제
+            }
         }
     }
 
-    public void crawlingProductHead(Category category, List<ClotheDto> clotheDtoList, Set<String> processedUrls) {
+
+    private void crawlingProductHead(WebDriver driver, Category category, List<ClotheDto> clotheDtoList, Set<String> processedUrls) {
         String url = BASE_URL + getCrawlingUrl(category);
         try {
             connectPage(driver, url);
         } catch (Exception e) {
+            log.error("페이지 접속 실패: " + url, e);
             return;
         }
         try {
-            int size = getProductCount();
+            int size = getProductCount(driver);
             for (int i = 1; i <= size; ++i) {
                 logProgress(i, size);
                 String name = waitForElement(driver, getSelector(NAME, i)).getText();
@@ -80,10 +93,12 @@ public class KappydesinCrawlerService extends CrawlerService {
                 String imgUrl = waitForElement(driver, getSelector(IMG_URL, i)).getAttribute("src");
                 String image = clothesService.generateS3Url("kappy", imgUrl);
                 String link = waitForElement(driver, getSelector(LINK, i)).getAttribute("href");
+
                 if (processedUrls.contains(imgUrl)) {
                     log.warn("중복된 이미지 URL: " + imgUrl);
                     continue;
                 }
+
                 processedUrls.add(imgUrl);
                 clotheDtoList.add(ClotheDto.builder()
                         .name(name)
@@ -97,14 +112,14 @@ public class KappydesinCrawlerService extends CrawlerService {
             if (size == 0) {
                 log.warn(ELEMENT_NOT_FOUND.getMessage());
             }
-        } catch (TimeoutException  e) {
+        } catch (TimeoutException e) {
             log.warn(CONTENT_LOAD_TIMEOUT.getMessage());
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private int getProductCount() {
+    private int getProductCount(WebDriver driver) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         AtomicInteger previousProductCount = new AtomicInteger(driver.findElements(By.cssSelector(getSelector(PRODUCT_LIST))).size());
         AtomicInteger curProductCount = new AtomicInteger(previousProductCount.get());
@@ -119,8 +134,8 @@ public class KappydesinCrawlerService extends CrawlerService {
                 WebElement moreButton = wait.until(ExpectedConditions.elementToBeClickable(
                         By.cssSelector(getSelector(BUTTON))));
                 moreButton.click();
-                wait.until(driver -> {
-                    curProductCount.set(driver.findElements(By.cssSelector(getSelector(PRODUCT_LIST))).size());
+                wait.until(d -> {
+                    curProductCount.set(d.findElements(By.cssSelector(getSelector(PRODUCT_LIST))).size());
                     return curProductCount.get() > previousProductCount.get();
                 });
                 previousProductCount.set(curProductCount.get());
