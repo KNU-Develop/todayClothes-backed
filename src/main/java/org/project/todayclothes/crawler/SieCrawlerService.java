@@ -42,7 +42,6 @@ public class SieCrawlerService extends CrawlerService {
         WebDriver driver = null;
 
         try {
-            // WebDriver를 crawling 메서드 내에서 필요할 때 초기화
             driver = webDriverFactory.createWebDriver();
             log.info(START_CRAWLING_ITEM_HEADER.getMessage());
 
