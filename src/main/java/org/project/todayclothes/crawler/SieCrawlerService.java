@@ -27,11 +27,11 @@ import static org.project.todayclothes.exception.code.CrawlingErrorCode.*;
 @Slf4j
 public class SieCrawlerService extends CrawlerService {
     private static final String BASE_URL = "https://sie-official.kr";
-    private final WebDriver driver;
+    private final WebDriverFactory webDriverFactory;
     private final ClothesService clothesService;
 
-    public SieCrawlerService(WebDriverFactory webDriverFactory, ClothesService clothesService) throws MalformedURLException {
-        this.driver = webDriverFactory.createWebDriver();
+    public SieCrawlerService(WebDriverFactory webDriverFactory, ClothesService clothesService) {
+        this.webDriverFactory = webDriverFactory;
         this.clothesService = clothesService;
     }
     @Override
@@ -39,29 +39,42 @@ public class SieCrawlerService extends CrawlerService {
         log.info(name + START_CRAWLING.getMessage());
         List<ClotheDto> clotheDtoList = new ArrayList<>();
         Set<String> processedUrls = new HashSet<>();
+        WebDriver driver = null;
+
         try {
+            // WebDriver를 crawling 메서드 내에서 필요할 때 초기화
+            driver = webDriverFactory.createWebDriver();
             log.info(START_CRAWLING_ITEM_HEADER.getMessage());
+
             for (Category category : categories) {
-                crawlingProductHead(category, clotheDtoList, processedUrls);
+                crawlingProductHead(driver, category, clotheDtoList, processedUrls);
             }
+
             log.info(END_CRAWLING_ITEM_HEADER.getMessage());
-            log.info("크롤링 데이터(개) : "+ clotheDtoList.size());
+            log.info("크롤링 데이터(개) : " + clotheDtoList.size());
             log.info(START_CRAWLING_ITEM_INFO.getMessage());
+
             int i = 1;
             int size = clotheDtoList.size();
             for (ClotheDto clotheDto : clotheDtoList) {
                 logProgress(i++, size);
                 crawlingContent(driver, clotheDto);
             }
+
             log.info(END_CRAWLING_ITEM_INFO.getMessage());
             clothesService.saveClotheDate(clotheDtoList);
+        } catch (Exception e) {
+            log.error("크롤링 중 오류 발생", e);
         } finally {
             log.info(name + END_CRAWLING.getMessage());
-            driver.quit();
+            // WebDriver 세션 종료
+            if (driver != null) {
+                driver.quit();
+            }
         }
     }
 
-    private void crawlingProductHead(Category category, List<ClotheDto> clotheDtoList, Set<String> processedUrls) {
+    private void crawlingProductHead(WebDriver driver, Category category, List<ClotheDto> clotheDtoList, Set<String> processedUrls) {
         String url = BASE_URL + getCrawlingUrl(category);
         try {
             for (int page = 1; page <= 2; ++page) {
@@ -70,8 +83,7 @@ public class SieCrawlerService extends CrawlerService {
                 } catch (Exception e) {
                     return;
                 }
-
-                int size = getProductCount();
+                int size = getProductCount(driver);
                 for (int i = 1; i <= size; ++i) {
                     logProgress(i, size);
                     String name = waitForElement(driver, getSelector(NAME, i)).getText();
@@ -79,10 +91,12 @@ public class SieCrawlerService extends CrawlerService {
                     String imgUrl = parsingImgPath(waitForElement(driver, getSelector(IMG_URL, i)).getAttribute("style"));
                     String image = clothesService.generateS3Url("sie", imgUrl);
                     String link = waitForElement(driver, getSelector(LINK, i)).getAttribute("href");
+
                     if (processedUrls.contains(imgUrl)) {
                         log.warn("중복된 이미지 URL: " + imgUrl);
                         continue;
                     }
+
                     processedUrls.add(imgUrl);
                     clotheDtoList.add(ClotheDto.builder()
                             .name(name)
@@ -93,12 +107,14 @@ public class SieCrawlerService extends CrawlerService {
                             .category(category)
                             .build());
                 }
+
                 if (size == 0) {
                     break;
                 }
+
                 url = getNextPageUrl(url, page);
             }
-        } catch (TimeoutException  e) {
+        } catch (TimeoutException e) {
             log.warn(CONTENT_LOAD_TIMEOUT.getMessage());
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
@@ -120,11 +136,9 @@ public class SieCrawlerService extends CrawlerService {
         return null;
     }
 
-    private int getProductCount() {
+    private int getProductCount(WebDriver driver) {
         try {
-            List<WebElement> productElements = driver.findElements(
-                    By.cssSelector(getSelector(PRODUCT_LIST))
-            );
+            List<WebElement> productElements = driver.findElements(By.cssSelector(getSelector(PRODUCT_LIST)));
             return productElements.size();
         } catch (TimeoutException e) {
             log.warn(ELEMENT_NOT_FOUND_FIND_BREAK.getMessage());
