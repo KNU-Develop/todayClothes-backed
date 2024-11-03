@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.project.todayclothes.global.Category;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -16,9 +17,11 @@ import static org.project.todayclothes.global.Category.*;
 public class CrawlerManagementService {
     @Value("${crawler.mode}")
     private String MODE;
-
+    @Lazy
     private final SieCrawlerService sieCrawlerService;
+    @Lazy
     private final KappydesinCrawlerService kappydesinCrawlerService;
+    @Lazy
     private final KreamCrawlerService kreamCrawlerService;
 
     //@EventListener(ApplicationReadyEvent.class)
