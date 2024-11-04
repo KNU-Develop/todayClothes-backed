@@ -35,7 +35,7 @@ public class Event {
     @Enumerated(EnumType.STRING)
     private Timezone timezone;
 
-    private String imagePath;
+    private String imagePath="https://todayclothes-file.s3.ap-northeast-2.amazonaws.com/reviews/%ED%99%94%EB%A9%B4+%EC%BA%A1%EC%B2%98+2024-11-04+135744.jpg";
     @ElementCollection
     @CollectionTable(name = "event_images", joinColumns = @JoinColumn(name = "event_id"))
     @Column(name = "my_image_path")
@@ -74,7 +74,6 @@ public class Event {
         this.user = user;
         this.createdAt = LocalDateTime.now();
     }
-
 
     @PrePersist
     protected void onCreate() {
