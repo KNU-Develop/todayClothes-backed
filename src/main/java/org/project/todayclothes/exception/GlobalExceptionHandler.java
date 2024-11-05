@@ -2,7 +2,7 @@ package org.project.todayclothes.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.project.todayclothes.exception.code.ErrorCode;
-import org.project.todayclothes.util.ApiResponseUtil;
+import org.project.todayclothes.utils.ApiResponseUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

@@ -3,7 +3,7 @@ package org.project.todayclothes.controller;
 import org.project.todayclothes.entity.User;
 import org.project.todayclothes.exception.BusinessException;
 import org.project.todayclothes.exception.code.UserErrorCode;
-import org.project.todayclothes.util.ApiResponseUtil;
+import org.project.todayclothes.utils.ApiResponseUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

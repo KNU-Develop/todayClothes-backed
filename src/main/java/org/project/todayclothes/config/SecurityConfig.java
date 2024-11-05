@@ -1,29 +1,20 @@
 package org.project.todayclothes.config;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.project.todayclothes.repository.UserRepository;
 import org.project.todayclothes.security.CustomOAuth2AuthorizationRequestResolver;
 import org.project.todayclothes.security.CustomOauth2AuthenticationSuccessHandler;
-import org.project.todayclothes.security.jwt.JWTFilter;
-import org.project.todayclothes.security.jwt.JWTUtil;
+import org.project.todayclothes.jwt.JWTFilter;
+import org.project.todayclothes.jwt.JWTUtil;
 import org.project.todayclothes.security.CustomOAuth2UserService;
-import org.project.todayclothes.security.jwt.RefreshRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.project.todayclothes.dto.gpt.ClotheRecommendPromptDto;
 import org.project.todayclothes.dto.gpt.GptRequestBodyDto;
-import org.project.todayclothes.dto.gpt.GptResponseClotheRecommendDto;
+import org.project.todayclothes.dto.gpt.GptResClotheRecommendDto;
 import org.project.todayclothes.exception.BusinessException;
 import org.project.todayclothes.exception.code.GptErrorCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +31,7 @@ public class GptService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    public GptResponseClotheRecommendDto getGetResponse(ClotheRecommendPromptDto clotheRecommendPromptDto) {
+    public GptResClotheRecommendDto getGetResponse(ClotheRecommendPromptDto clotheRecommendPromptDto) {
         try {
             // HTTP 요청 헤더 설정
             HttpHeaders headers = new HttpHeaders();
@@ -74,7 +74,7 @@ public class GptService {
     private Matcher parsingGptResponseBody(String gptResponseBody) {
         return (Pattern.compile("\\{([^}]*)\\}")).matcher(gptResponseBody);
     }
-    private GptResponseClotheRecommendDto convertStringToGptResponseClotheRecommendDto(String content) throws JsonProcessingException {
-        return objectMapper.readValue("{"+content+"}", GptResponseClotheRecommendDto.class);
+    private GptResClotheRecommendDto convertStringToGptResponseClotheRecommendDto(String content) throws JsonProcessingException {
+        return objectMapper.readValue("{"+content+"}", GptResClotheRecommendDto.class);
     }
 }

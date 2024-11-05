@@ -16,7 +16,7 @@ public class WebDriverFactory {
     private String MODE;
 
     @Value("${crawler.path}")
-    private String CHROME_DRIVER_PATH;
+    private String chromeDriverPath;
 
     public WebDriver createWebDriver() throws MalformedURLException {
         ChromeOptions options = new ChromeOptions();
@@ -24,10 +24,10 @@ public class WebDriverFactory {
         options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36");
 
         if ("dev".equals(MODE)) {
-            System.setProperty("webdriver.chrome.driver", CHROME_DRIVER_PATH);
+            System.setProperty("webdriver.chrome.driver", chromeDriverPath);
             return new ChromeDriver(options);
         } else {
-            return new RemoteWebDriver(new URL(CHROME_DRIVER_PATH), options);
+            return new RemoteWebDriver(new URL(chromeDriverPath), options);
         }
     }
 }
