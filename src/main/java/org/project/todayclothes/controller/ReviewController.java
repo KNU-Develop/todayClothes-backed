@@ -7,7 +7,7 @@ import org.project.todayclothes.exception.Api_Response;
 import org.project.todayclothes.exception.code.CommonErrorCode;
 import org.project.todayclothes.exception.code.SuccessCode;
 import org.project.todayclothes.service.ReviewService;
-import org.project.todayclothes.util.ApiResponseUtil;
+import org.project.todayclothes.utils.ApiResponseUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;

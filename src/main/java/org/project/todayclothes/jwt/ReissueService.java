@@ -1,4 +1,4 @@
-package org.project.todayclothes.security.jwt;
+package org.project.todayclothes.jwt;
 
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.Optional;
-
-import static org.project.todayclothes.security.jwt.JWTUtil.REFRESH;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +45,7 @@ public class ReissueService {
     }
 
     public boolean isRefreshToken(String refreshToken) {
-        return jwtUtil.getCategory(refreshToken).equals(REFRESH);
+        return jwtUtil.getCategory(refreshToken).equals(JWTUtil.REFRESH);
     }
 
     public String createAccessToken(String refreshToken) {
@@ -56,7 +53,7 @@ public class ReissueService {
     }
 
     public String createRefreshToken(String refreshToken) {
-        String newRefreshToken = createToken(refreshToken, REFRESH);
+        String newRefreshToken = createToken(refreshToken, JWTUtil.REFRESH);
         replaceRefreshToken(refreshToken, newRefreshToken);
         return newRefreshToken;
     }

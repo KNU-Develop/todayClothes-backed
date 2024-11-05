@@ -1,4 +1,4 @@
-package org.project.todayclothes.security.jwt;
+package org.project.todayclothes.jwt;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
