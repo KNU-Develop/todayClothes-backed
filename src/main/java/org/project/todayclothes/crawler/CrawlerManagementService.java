@@ -28,7 +28,7 @@ public class CrawlerManagementService {
     public void executeOnceOnStartup() {
         if (MODE.equals("dev")) {
             sieCrawlerService.crawling("SIE", new Category[]{TOPS_TEE, TOPS_KNIT, TOPS_BLOUSE, PANTS, SKIRTS, OUTERS, NEW_WINTER, BAGS, JEWELRY});
-            kappydesinCrawlerService.crawling("Kappydesin", new Category[]{TOP, OUTER, PANTS, SKIRT, ACC});
+            kappydesinCrawlerService.crawling("Kappydesin", new Category[]{TOP, OUTER, PANTS, ACC});
             kreamCrawlerService.crawling("Kream", new Category[]{SHOES});
         }
     }

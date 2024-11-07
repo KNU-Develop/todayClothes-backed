@@ -53,7 +53,7 @@ public class ReviewService {
         }
         Review review = new Review(reviewReq.getFeedback(), imageUrls);
         reviewRepository.save(review);
-
+        event.updateImagePath(imageUrls);
         event.associateReview(review);
         eventRepository.save(event);
 
