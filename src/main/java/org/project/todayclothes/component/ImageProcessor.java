@@ -2,7 +2,12 @@ package org.project.todayclothes.component;
 
 import lombok.RequiredArgsConstructor;
 import org.project.todayclothes.dto.ClotheRecommendDto;
+import org.project.todayclothes.dto.ResRecommendClotheDto;
 import org.project.todayclothes.dto.gpt.GptResClotheRecommendDto;
+import org.project.todayclothes.entity.Clothe;
+import org.project.todayclothes.exception.BusinessException;
+import org.project.todayclothes.exception.code.ClotheErrorCode;
+import org.project.todayclothes.repository.ClotheRepository;
 import org.project.todayclothes.service.ClothesService;
 import org.project.todayclothes.service.S3ImageService;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -15,7 +20,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Component
@@ -35,12 +42,38 @@ public class ImageProcessor {
     };
     final String PACKAGE_NAME = "recommendImage";
     private final S3ImageService s3ImageService;
+    private final ClotheRepository clotheRepository;
 
-    public String getRecommendImageUrl(List<String> imagePaths) throws IOException {
+    public String getRecommendImageUrl(ResRecommendClotheDto clotheDto) throws IOException {
+        List<String> imagePaths = getRecommendItemUrlList(clotheDto);
+
         BufferedImage finalImage = createRecommendImage(imagePaths);
+
         String filaName = PACKAGE_NAME + UUID.randomUUID();
 //        ImageIO.write(finalImage, "png", new File("src/main/resources/static/merged_image.png"));
         return s3ImageService.uploadImage(finalImage, filaName);
+    }
+    private List<String> getRecommendItemUrlList(ResRecommendClotheDto clotheDto) {
+        List<String> imagePaths;
+        try {
+            String acc2;
+            if (clotheDto.getOuter() == null) {
+                acc2 = clotheRepository.findById(clotheDto.getAcc2()).get().getImage();
+            } else {
+                acc2 = clotheRepository.findById(clotheDto.getOuter()).get().getImage();
+            }
+
+            imagePaths = List.of(
+                    clotheRepository.findById(clotheDto.getTop()).get().getImage(),
+                    clotheRepository.findById(clotheDto.getBottom()).get().getImage(),
+                    clotheRepository.findById(clotheDto.getShoes()).get().getImage(),
+                    clotheRepository.findById(clotheDto.getAcc1()).get().getImage(),
+                    acc2
+            );
+        } catch (Exception e) {
+            throw new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND);
+        }
+        return imagePaths;
     }
 
     private BufferedImage createRecommendImage(List<String> imagePaths) throws IOException {

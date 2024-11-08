@@ -2,6 +2,7 @@ package org.project.todayclothes.dto;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 public class ClotheRecommendDto {
@@ -11,6 +12,8 @@ public class ClotheRecommendDto {
     private final String acc1;
     private final String acc2;
     private final String comment;
+    @Setter
+    private String recommendClotheImageUrl;
 
     @Builder
     public ClotheRecommendDto(String top, String bottom, String shoes, String acc1, String acc2, String comment) {
