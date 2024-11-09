@@ -31,7 +31,7 @@ public class ClothesService {
 
     public String generateS3Url(String siteName, String originalImageUrl) throws UnsupportedEncodingException {
         String fileName;
-        String folderName = siteName.toLowerCase() + "/"; // 폴더명을 siteName으로 설정
+        String folderName = siteName.toLowerCase() + "/";
 
         switch (siteName.toLowerCase()) {
             case "kream":
