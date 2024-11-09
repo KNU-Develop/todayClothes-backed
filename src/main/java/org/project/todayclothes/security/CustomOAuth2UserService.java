@@ -1,13 +1,9 @@
 package org.project.todayclothes.security;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.project.todayclothes.dto.oauth2.*;
 import org.project.todayclothes.entity.User;
 import org.project.todayclothes.repository.UserRepository;
-import org.project.todayclothes.security.jwt.JWTUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -26,23 +22,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oauth2User = super.loadUser(userRequest);
-//        System.out.println(oauth2User.getAttributes());
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
 
-        OAuth2Response oAuth2Response = null;
-        if (registrationId.equals("google")) {
-            oAuth2Response = new GoogleOauth2Response(oauth2User.getAttributes());
-        } else if (registrationId.equals("kakao")) {
-            oAuth2Response = new KakaoOauth2Response(oauth2User.getAttributes());
-        } else {
-            return null;
-        }
+        OAuth2Response oAuth2Response = createOAuth2Response(oauth2User, registrationId);
 
         Oauth2UserDto oauth2UserDto = new Oauth2UserDto(oAuth2Response, "USER");
         CustomOAuth2User customOAuth2User = new CustomOAuth2User(oauth2UserDto);
 
 //        String encodeSocialId = encodeSocialId(customOAuth2User.getSocialId());
-//        String encodeSocialId = customOAuth2User.getSocialId();
+
         String socialId = customOAuth2User.getSocialId();
 
         Optional<User> userOpt = userRepository.findBySocialId(socialId);
@@ -57,7 +45,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return customOAuth2User;
     }
 
-    public String encodeSocialId(String socialId) {
+    private String encodeSocialId(String socialId) {
         return passwordEncoder.encode(socialId);
+    }
+
+    private OAuth2Response createOAuth2Response(OAuth2User oauth2User, String registrationId) {
+        if (registrationId.equals("google")) {
+            return new GoogleOauth2Response(oauth2User.getAttributes());
+        } else if (registrationId.equals("kakao")) {
+            return new KakaoOauth2Response(oauth2User.getAttributes());
+        } else {
+            return null;
+        }
     }
 }

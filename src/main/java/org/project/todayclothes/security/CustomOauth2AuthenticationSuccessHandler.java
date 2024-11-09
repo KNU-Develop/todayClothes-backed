@@ -5,8 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.project.todayclothes.dto.oauth2.CustomOAuth2User;
-import org.project.todayclothes.security.jwt.JWTUtil;
-import org.project.todayclothes.security.jwt.ReissueService;
+import org.project.todayclothes.jwt.JWTUtil;
+import org.project.todayclothes.jwt.ReissueService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,8 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Iterator;
 
-import static org.project.todayclothes.security.jwt.JWTUtil.ACCESS;
-import static org.project.todayclothes.security.jwt.JWTUtil.REFRESH;
+import static org.project.todayclothes.jwt.JWTUtil.ACCESS;
+import static org.project.todayclothes.jwt.JWTUtil.REFRESH;
 
 @Component
 @RequiredArgsConstructor
@@ -46,7 +46,7 @@ public class CustomOauth2AuthenticationSuccessHandler implements AuthenticationS
         reissueService.addRefreshEntity(socialId, refreshToken);
 
         response.setHeader("Authorization", "Bearer " + accessToken);
-        response.addCookie(jwtUtil.createHttpOnlySecureCookie(refreshToken));
+        response.addCookie(jwtUtil.createCookie(refreshToken));
         response.setStatus(HttpStatus.OK.value());
         String redirectUrl = String.format("%s?accessToken=%s&refreshToken=%s",
                 getRedirectUrl(request),

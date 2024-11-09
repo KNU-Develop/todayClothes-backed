@@ -1,4 +1,4 @@
-package org.project.todayclothes.security.jwt;
+package org.project.todayclothes.jwt;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,7 +36,7 @@ public class ReissueController {
         String newRefreshToken = reissueService.createRefreshToken(refreshToken);
 
         response.setHeader("Authorization", "Bearer " + newAccessToken);
-        response.addCookie(jwtUtil.createHttpOnlySecureCookie(newRefreshToken));
+        response.addCookie(jwtUtil.createCookie(newRefreshToken));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

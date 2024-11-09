@@ -1,6 +1,5 @@
-package org.project.todayclothes.security.jwt;
+package org.project.todayclothes.jwt;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,8 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.project.todayclothes.dto.oauth2.CustomOAuth2User;
 import org.project.todayclothes.dto.oauth2.Oauth2UserDto;
-import org.project.todayclothes.exception.code.CommonErrorCode;
-import org.project.todayclothes.util.ApiResponseUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

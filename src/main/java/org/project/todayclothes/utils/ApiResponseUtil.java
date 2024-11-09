@@ -1,4 +1,4 @@
-package org.project.todayclothes.util;
+package org.project.todayclothes.utils;
 
 import org.project.todayclothes.exception.Api_Response;
 import org.project.todayclothes.global.code.SuccessCode;

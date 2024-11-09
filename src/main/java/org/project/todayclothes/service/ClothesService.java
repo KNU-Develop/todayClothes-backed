@@ -2,10 +2,10 @@ package org.project.todayclothes.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.project.todayclothes.dto.ClotheRecommendDto;
 import org.project.todayclothes.dto.crawling.ClotheDto;
+import org.project.todayclothes.dto.gpt.GptResClotheRecommendDto;
 import org.project.todayclothes.entity.Clothe;
-import org.project.todayclothes.exception.BusinessException;
-import org.project.todayclothes.exception.code.ClotheErrorCode;
 import org.project.todayclothes.repository.ClotheRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,9 +16,9 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -31,7 +31,7 @@ public class ClothesService {
 
     public String generateS3Url(String siteName, String originalImageUrl) throws UnsupportedEncodingException {
         String fileName;
-        String folderName = siteName.toLowerCase() + "/"; // 폴더명을 siteName으로 설정
+        String folderName = siteName.toLowerCase() + "/";
 
         switch (siteName.toLowerCase()) {
             case "kream":
@@ -134,5 +134,33 @@ public class ClothesService {
         for (ClotheDto clotheDto : clotheDtoList) {
             clotheRepository.save(new Clothe(clotheDto));
         }
+    }
+
+    @Transactional(readOnly = true)
+    public ClotheRecommendDto getS3ImageUrlById(GptResClotheRecommendDto gptResClotheRecommendDto) {
+        List<Long> ids = Arrays.asList(
+                gptResClotheRecommendDto.getTop(),
+                gptResClotheRecommendDto.getBottom(),
+                gptResClotheRecommendDto.getShoes(),
+                gptResClotheRecommendDto.getAcc1(),
+                gptResClotheRecommendDto.getAcc2()
+        );
+        int lastIdx = ids.size() - 1;
+        if (ids.get(lastIdx) == null) {
+            ids.set(lastIdx, gptResClotheRecommendDto.getOuter());
+        }
+
+        Map<Long, String> imgUrlMap = clotheRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(Clothe::getId, Clothe::getImgUrl));
+
+
+        return ClotheRecommendDto.builder()
+                .top(imgUrlMap.getOrDefault(gptResClotheRecommendDto.getTop(), null))
+                .bottom(imgUrlMap.getOrDefault(gptResClotheRecommendDto.getBottom(), null))
+                .shoes(imgUrlMap.getOrDefault(gptResClotheRecommendDto.getShoes(), null))
+                .acc1(imgUrlMap.getOrDefault(gptResClotheRecommendDto.getAcc1(), null))
+                .acc2(imgUrlMap.getOrDefault(gptResClotheRecommendDto.getAcc2(), String.valueOf(gptResClotheRecommendDto.getOuter())))
+                .comment(gptResClotheRecommendDto.getComment())
+                .build();
     }
 }
