@@ -16,5 +16,4 @@ public class ReviewReq {
         this.clothesId = clothesId;
         this.feedback = feedback;
     }
-
 }

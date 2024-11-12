@@ -5,13 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.project.todayclothes.dto.EventReqDto;
+import org.project.todayclothes.dto.EventResDto;
 import org.project.todayclothes.exception.BusinessException;
 import org.project.todayclothes.exception.code.EventErrorCode;
 import org.project.todayclothes.exception.code.UserErrorCode;
-import org.project.todayclothes.global.Gender;
-import org.project.todayclothes.global.Style;
-import org.project.todayclothes.global.Timezone;
-import org.project.todayclothes.global.Type;
+import org.project.todayclothes.global.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -98,18 +96,22 @@ public class Event {
         }
     }
 
-    public Event updateImagePath(List<String> myImgPaths) {
+    public Event updateMyImagePath(List<String> myImgPaths) {
         if (myImgPaths == null || myImgPaths.isEmpty()) {
             throw new BusinessException(EventErrorCode.EVENT_UPDATE_FAILED);
         }
         this.myImgPaths = new ArrayList<>(myImgPaths);
         return this;
     }
-
-    public Event associateReview(Review review) {
-        if (this.review != null) {
+    public Event updateImagePath(String imagePath) {
+        if (imagePath == null) {
             throw new BusinessException(EventErrorCode.EVENT_UPDATE_FAILED);
         }
+        this.imagePath = imagePath;
+        return this;
+    }
+
+    public Event associateReview(Review review) {
         this.review = review;
         return this;
     }
