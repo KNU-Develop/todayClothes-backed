@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class ClothesService {
-    @Value("ai.recommend-clothe-url")
+    @Value("${ai.recommend-clothe-url}")
     private String aiServerUrl;
 
     private final ClotheRepository clotheRepository;
