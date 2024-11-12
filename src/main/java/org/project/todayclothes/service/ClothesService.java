@@ -148,6 +148,26 @@ public class ClothesService {
         }
     }
 
+    public ResFinalRecommendClotheDto recommendClothe(ReqRecommendClotheDto clotheDto) throws IOException {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-Type", "application/json");
+
+            HttpEntity<ReqRecommendClotheDto> request = new HttpEntity<>(clotheDto, headers);
+
+            ResponseEntity<ResRecommendClotheDto> response = restTemplate.postForEntity(aiServerUrl, request, ResRecommendClotheDto.class);
+            String recommendImageUrl = imageProcessor.getRecommendImageUrl(response.getBody());
+
+            return ResFinalRecommendClotheDto.builder()
+                    .recommendClotheUrl(recommendImageUrl)
+                    .comment(Objects.requireNonNull(response.getBody()).getComment())
+                    .build();
+        } catch (Exception e) {
+            log.error("Failed to recommend clothe", e);
+            throw new IOException("Failed to recommend clothe");
+        }
+    }
+
     @Transactional(readOnly = true)
     public ClotheRecommendDto getS3ImageUrlById(GptResClotheRecommendDto gptResClotheRecommendDto) {
         List<Long> ids = Arrays.asList(
@@ -173,23 +193,6 @@ public class ClothesService {
                 .acc1(imgUrlMap.getOrDefault(gptResClotheRecommendDto.getAcc1(), null))
                 .acc2(imgUrlMap.getOrDefault(gptResClotheRecommendDto.getAcc2(), String.valueOf(gptResClotheRecommendDto.getOuter())))
                 .comment(gptResClotheRecommendDto.getComment())
-                .build();
-    }
-
-    public ResFinalRecommendClotheDto recommendClothe(ReqRecommendClotheDto clotheDto) throws IOException {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Content-Type", "application/json");
-
-        HttpEntity<ReqRecommendClotheDto> request = new HttpEntity<>(clotheDto, headers);
-
-        ResponseEntity<ResRecommendClotheDto> response = restTemplate.postForEntity(aiServerUrl, request, ResRecommendClotheDto.class);
-
-
-        String recommendImageUrl = imageProcessor.getRecommendImageUrl(response.getBody());
-
-        return ResFinalRecommendClotheDto.builder()
-                .recommendClotheUrl(recommendImageUrl)
-                .comment(Objects.requireNonNull(response.getBody()).getComment())
                 .build();
     }
 }
