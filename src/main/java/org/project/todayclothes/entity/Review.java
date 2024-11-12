@@ -52,8 +52,4 @@ public class Review {
         }
         this.imageFiles.add(imageFile);
     }
-
-    public void removeImageFile(String imageFile) {
-        this.imageFiles.remove(imageFile);
-    }
 }

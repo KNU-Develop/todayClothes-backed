@@ -30,6 +30,18 @@ public class EventReqDto {
     private double feelsLike;
     private double temp;
 
+    public ReqRecommendClotheDto toRecommendClotheDto() {
+        Weather weatherDto = new Weather(temp, feelsLike, rain, humidity, wind);
+        return new ReqRecommendClotheDto(
+                weatherDto,
+                startTime,
+                location,
+                type,
+                gender,
+                style
+        );
+    }
+
     @Builder
     public EventReqDto(String location, LocalDateTime startTime, Type type, Style style, Gender gender, Timezone timezone,
                        Integer weather, double wind, double rain, double humidity, double feelsLike, double temp) {

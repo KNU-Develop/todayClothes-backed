@@ -2,13 +2,19 @@ package org.project.todayclothes.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.project.todayclothes.dto.ClotheRecommendDto;
+import org.project.todayclothes.component.ImageProcessor;
+import org.project.todayclothes.dto.*;
 import org.project.todayclothes.dto.crawling.ClotheDto;
 import org.project.todayclothes.dto.gpt.GptResClotheRecommendDto;
 import org.project.todayclothes.entity.Clothe;
 import org.project.todayclothes.repository.ClotheRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -25,9 +31,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class ClothesService {
+    @Value("ai.recommend-clothe-url")
+    private String aiServerUrl;
+
     private final ClotheRepository clotheRepository;
     private final S3UploadService s3UploadService;
     private final BackgroundRemoverService backgroundRemoverService;
+    private final RestTemplate restTemplate;
+    private final ImageProcessor imageProcessor;
+
 
     public String generateS3Url(String siteName, String originalImageUrl) throws UnsupportedEncodingException {
         String fileName;
@@ -161,6 +173,23 @@ public class ClothesService {
                 .acc1(imgUrlMap.getOrDefault(gptResClotheRecommendDto.getAcc1(), null))
                 .acc2(imgUrlMap.getOrDefault(gptResClotheRecommendDto.getAcc2(), String.valueOf(gptResClotheRecommendDto.getOuter())))
                 .comment(gptResClotheRecommendDto.getComment())
+                .build();
+    }
+
+    public ResFinalRecommendClotheDto recommendClothe(ReqRecommendClotheDto clotheDto) throws IOException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/json");
+
+        HttpEntity<ReqRecommendClotheDto> request = new HttpEntity<>(clotheDto, headers);
+
+        ResponseEntity<ResRecommendClotheDto> response = restTemplate.postForEntity(aiServerUrl, request, ResRecommendClotheDto.class);
+
+
+        String recommendImageUrl = imageProcessor.getRecommendImageUrl(response.getBody());
+
+        return ResFinalRecommendClotheDto.builder()
+                .recommendClotheUrl(recommendImageUrl)
+                .comment(Objects.requireNonNull(response.getBody()).getComment())
                 .build();
     }
 }
