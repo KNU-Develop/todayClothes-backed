@@ -110,6 +110,10 @@ public class Event {
         this.imagePath = imagePath;
         return this;
     }
+    public Event updateComment(String comment) {
+        this.comment = comment;
+        return this;
+    }
 
     public Event associateReview(Review review) {
         this.review = review;
