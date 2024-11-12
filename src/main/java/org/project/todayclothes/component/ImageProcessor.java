@@ -1,6 +1,7 @@
 package org.project.todayclothes.component;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.project.todayclothes.dto.ClotheRecommendDto;
 import org.project.todayclothes.dto.ResRecommendClotheDto;
 import org.project.todayclothes.dto.gpt.GptResClotheRecommendDto;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ImageProcessor {
@@ -70,7 +72,9 @@ public class ImageProcessor {
                     clotheRepository.findById(clotheDto.getAcc1()).get().getImage(),
                     acc2
             );
+            log.debug("Fetched image paths: {}", imagePaths);
         } catch (Exception e) {
+            log.error("Failed to fetch clothing items for clotheDto: {}", clotheDto, e);
             throw new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND);
         }
         return imagePaths;
