@@ -46,7 +46,7 @@ public class ImageProcessor {
     private final S3ImageService s3ImageService;
     private final ClotheRepository clotheRepository;
 
-    public String getRecommendImageUrl(ResRecommendClotheDto clotheDto) throws IOException {
+    public String getRecommendImageUrl(ResRecommendClotheDto clotheDto) throws Exception {
         List<String> imagePaths = getRecommendItemUrlList(clotheDto);
 
         BufferedImage finalImage = createRecommendImage(imagePaths);
@@ -55,30 +55,93 @@ public class ImageProcessor {
 //        ImageIO.write(finalImage, "png", new File("src/main/resources/static/merged_image.png"));
         return s3ImageService.uploadImage(finalImage, filaName);
     }
-    private List<String> getRecommendItemUrlList(ResRecommendClotheDto clotheDto) {
-        List<String> imagePaths;
-        try {
-            String acc2;
-            if (clotheDto.getOuter() == null) {
-                acc2 = clotheRepository.findById(clotheDto.getAcc2()).get().getImage();
-            } else {
-                acc2 = clotheRepository.findById(clotheDto.getOuter()).get().getImage();
-            }
-
-            imagePaths = List.of(
-                    clotheRepository.findById(clotheDto.getTop()).get().getImage(),
-                    clotheRepository.findById(clotheDto.getBottom()).get().getImage(),
-                    clotheRepository.findById(clotheDto.getShoes()).get().getImage(),
-                    clotheRepository.findById(clotheDto.getAcc1()).get().getImage(),
-                    acc2
-            );
-            log.debug("Fetched image paths: {}", imagePaths);
-        } catch (Exception e) {
-            log.error("Failed to fetch clothing items for clotheDto: {}", clotheDto, e);
-            throw new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND);
+//    private List<String> getRecommendItemUrlList(ResRecommendClotheDto clotheDto) {
+//        List<String> imagePaths;
+//        try {
+//            String acc2;
+//            if (clotheDto.getOuter() == null) {
+//                acc2 = clotheRepository.findById(clotheDto.getAcc2()).get().getImage();
+//            } else {
+//                acc2 = clotheRepository.findById(clotheDto.getOuter()).get().getImage();
+//            }
+//
+//            imagePaths = List.of(
+//                    clotheRepository.findById(clotheDto.getTop()).get().getImage(),
+//                    clotheRepository.findById(clotheDto.getBottom()).get().getImage(),
+//                    clotheRepository.findById(clotheDto.getShoes()).get().getImage(),
+//                    clotheRepository.findById(clotheDto.getAcc1()).get().getImage(),
+//                    acc2
+//            );
+//            log.debug("Fetched image paths: {}", imagePaths);
+//        } catch (Exception e) {
+//            log.error("Failed to fetch clothing items for clotheDto: {}", clotheDto, e);
+//            throw new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND);
+//        }
+//        return imagePaths;
+//    }
+private List<String> getRecommendItemUrlList(ResRecommendClotheDto clotheDto) throws Exception {
+    List<String> imagePaths = new ArrayList<>();
+    try {
+        // 필수 필드 확인: top, bottom, shoes는 null이면 예외 발생
+        if (clotheDto.getTop() == null) {
+            log.error("Top ID is null");
+            throw new BusinessException(ClotheErrorCode.CLOTHES_NOT_RECOMMENDED);
         }
-        return imagePaths;
+        imagePaths.add(clotheRepository.findById(clotheDto.getTop())
+                .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND))
+                .getImage());
+
+        if (clotheDto.getBottom() == null) {
+            log.error("Bottom ID is null");
+            throw new BusinessException(ClotheErrorCode.CLOTHES_NOT_RECOMMENDED);
+        }
+        imagePaths.add(clotheRepository.findById(clotheDto.getBottom())
+                .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND))
+                .getImage());
+
+        if (clotheDto.getShoes() == null) {
+            log.error("Shoes ID is null");
+            throw new BusinessException(ClotheErrorCode.CLOTHES_NOT_RECOMMENDED);
+        }
+        imagePaths.add(clotheRepository.findById(clotheDto.getShoes())
+                .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND))
+                .getImage());
+
+        // 선택 필드 처리: acc1, acc2, outer는 null이어도 예외 발생하지 않음
+        if (clotheDto.getAcc1() != null) {
+            imagePaths.add(clotheRepository.findById(clotheDto.getAcc1())
+                    .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND))
+                    .getImage());
+        } else {
+            log.debug("Acc1 ID is null, skipping this item.");
+        }
+
+        // outer가 null일 경우에만 acc2를 가져옴
+        if (clotheDto.getOuter() == null) {
+            if (clotheDto.getAcc2() != null) {
+                String acc2 = clotheRepository.findById(clotheDto.getAcc2())
+                        .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND))
+                        .getImage();
+                imagePaths.add(acc2);
+            } else {
+                log.debug("Acc2 ID is null and Outer is also null, skipping acc2.");
+            }
+        } else {
+            // outer가 null이 아닐 경우에만 outer 이미지를 추가
+            String outer = clotheRepository.findById(clotheDto.getOuter())
+                    .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND))
+                    .getImage();
+            imagePaths.add(outer);
+        }
+
+        log.debug("Fetched image paths: {}", imagePaths);
+    } catch (Exception e) {
+        log.error("Failed to fetch clothing items for clotheDto: {}", clotheDto, e);
+        throw e instanceof BusinessException ? e : new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND);
     }
+    return imagePaths;
+}
+
 
     private BufferedImage createRecommendImage(List<String> imagePaths) throws IOException {
         BufferedImage canvas = new BufferedImage(WRAPPER_WIDTH, WRAPPER_HEIGHT, BufferedImage.TYPE_INT_ARGB);
