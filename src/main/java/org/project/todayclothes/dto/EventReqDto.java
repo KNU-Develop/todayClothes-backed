@@ -10,6 +10,7 @@ import org.project.todayclothes.global.Timezone;
 import org.project.todayclothes.global.Type;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Getter
 @NoArgsConstructor
@@ -31,10 +32,19 @@ public class EventReqDto {
     private double temp;
 
     public ReqRecommendClotheDto toRecommendClotheDto() {
-        Weather weatherDto = new Weather(temp, feelsLike, rain, humidity, wind);
+        String formattedTime = startTime.format(DateTimeFormatter.ofPattern("HH:mm"));
+
+        Weather weatherDto = new Weather(
+                (int) temp,
+                (int) feelsLike,
+                (int) rain,
+                (int) humidity,
+                (int) wind
+        );
+
         return new ReqRecommendClotheDto(
                 weatherDto,
-                startTime,
+                formattedTime,
                 location,
                 type,
                 gender,
@@ -58,5 +68,4 @@ public class EventReqDto {
         this.feelsLike = feelsLike;
         this.temp = temp;
     }
-
 }

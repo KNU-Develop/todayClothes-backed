@@ -61,7 +61,9 @@ public class EventService {
         Event savedEvent = eventRepository.save(event);
         ReqRecommendClotheDto recommendClotheDto = eventReqDto.toRecommendClotheDto();
         String recommendedImageUrl = clothesService.recommendClothe(recommendClotheDto).getRecommendClotheUrl();
+        String comment = clothesService.recommendClothe(recommendClotheDto).getComment();
         savedEvent.updateImagePath(recommendedImageUrl);
+        savedEvent.updateComment(comment);
         return convertToEventResDto(savedEvent);
     }
 
