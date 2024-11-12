@@ -157,7 +157,7 @@ public class ClothesService {
 
             ResponseEntity<ResRecommendClotheDto> response = restTemplate.postForEntity(aiServerUrl, request, ResRecommendClotheDto.class);
             String recommendImageUrl = imageProcessor.getRecommendImageUrl(response.getBody());
-
+            log.debug("Recommend image URL: {}", recommendImageUrl);
             return ResFinalRecommendClotheDto.builder()
                     .recommendClotheUrl(recommendImageUrl)
                     .comment(Objects.requireNonNull(response.getBody()).getComment())
