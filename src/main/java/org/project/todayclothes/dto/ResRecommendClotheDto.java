@@ -6,11 +6,11 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class ResRecommendClotheDto {
-    private Long top;
-    private Long bottom;
-    private Long shoes;
-    private Long outer;
-    private Long acc1;
-    private Long acc2;
-    private String comment;
+    private Long TOP;
+    private Long BOTTOM;
+    private Long SHOES;
+    private Long OUTER;
+    private Long ACC1;
+    private Long ACC2;
+    private String Comment;
 }
