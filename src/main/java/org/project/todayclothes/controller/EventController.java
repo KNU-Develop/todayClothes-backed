@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -25,7 +26,7 @@ public class EventController {
     @PostMapping
     public ResponseEntity<Api_Response<EventResDto>> createEvent(
             @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
-            @RequestBody EventReqDto eventReqDto) {
+            @RequestBody EventReqDto eventReqDto) throws IOException {
         String socialId = customOAuth2User.getSocialId();
         if (socialId == null || socialId.isEmpty()) {
             return ApiResponseUtil.createErrorResponse(CommonErrorCode.UNAUTHORIZED_MEMBER);

@@ -48,7 +48,7 @@ public class ReviewService {
         }
         List<String> imageUrls = processImageFiles(imageFiles);
         if (!imageUrls.isEmpty()) {
-            event.updateImagePath(imageUrls);
+            event.updateMyImagePath(imageUrls);
             eventRepository.save(event);
         }
         Review review = new Review(reviewReq.getFeedback(), imageUrls);
