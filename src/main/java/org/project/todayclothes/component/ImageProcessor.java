@@ -47,6 +47,7 @@ public class ImageProcessor {
     private final ClotheRepository clotheRepository;
 
     public String getRecommendImageUrl(ResRecommendClotheDto clotheDto) throws Exception {
+        log.debug("AI에서 받은 응답: {}", clotheDto);
         List<String> imagePaths = getRecommendItemUrlList(clotheDto);
 
         BufferedImage finalImage = createRecommendImage(imagePaths);
@@ -59,17 +60,17 @@ public class ImageProcessor {
         List<String> imagePaths;
         try {
             String acc2;
-            if (clotheDto.getOUTER() == null) {
-                acc2 = clotheRepository.findById(clotheDto.getACC1()).get().getImage();
+            if (clotheDto.getOuter() == null) {
+                acc2 = clotheRepository.findById(clotheDto.getAcc1()).get().getImage();
             } else {
-                acc2 = clotheRepository.findById(clotheDto.getOUTER()).get().getImage();
+                acc2 = clotheRepository.findById(clotheDto.getAcc2()).get().getImage();
             }
 
             imagePaths = List.of(
-                    clotheRepository.findById(clotheDto.getTOP()).get().getImage(),
-                    clotheRepository.findById(clotheDto.getBOTTOM()).get().getImage(),
-                    clotheRepository.findById(clotheDto.getSHOES()).get().getImage(),
-                    clotheRepository.findById(clotheDto.getACC1()).get().getImage(),
+                    clotheRepository.findById(clotheDto.getTop()).get().getImage(),
+                    clotheRepository.findById(clotheDto.getBottom()).get().getImage(),
+                    clotheRepository.findById(clotheDto.getShoes()).get().getImage(),
+                    clotheRepository.findById(clotheDto.getAcc1()).get().getImage(),
                     acc2
             );
             log.debug("Fetched image paths: {}", imagePaths);
