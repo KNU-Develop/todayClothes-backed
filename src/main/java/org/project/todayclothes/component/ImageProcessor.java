@@ -56,81 +56,31 @@ public class ImageProcessor {
 //        ImageIO.write(finalImage, "png", new File("src/main/resources/static/merged_image.png"));
         return s3ImageService.uploadImage(finalImage, filaName);
     }
-//    private List<String> getRecommendItemUrlList(ResRecommendClotheDto clotheDto) {
-//        List<String> imagePaths;
-//        try {
-//            String acc2;
-//            if (clotheDto.getOuter() == null) {
-//                acc2 = clotheRepository.findById(clotheDto.getAcc1()).get().getImage();
-//            } else {
-//                acc2 = clotheRepository.findById(clotheDto.getAcc2()).get().getImage();
-//            }
-//
-//            imagePaths = List.of(
-//                    clotheRepository.findById(clotheDto.getTop()).get().getImage(),
-//                    clotheRepository.findById(clotheDto.getBottom()).get().getImage(),
-//                    clotheRepository.findById(clotheDto.getShoes()).get().getImage(),
-//                    clotheRepository.findById(clotheDto.getAcc1()).get().getImage(),
-//                    acc2
-//            );
-//            log.debug("Fetched image paths: {}", imagePaths);
-//        } catch (Exception e) {
-//            log.error("Failed to fetch clothing items for clotheDto: {}", clotheDto, e);
-//            throw new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND);
-//        }
-//        return imagePaths;
-//    }
-private List<String> getRecommendItemUrlList(ResRecommendClotheDto clotheDto) {
-    List<String> imagePaths = new ArrayList<>();
-    try {
-        if (clotheDto.getTop() != null) {
-            String topImage = clotheRepository.findById(clotheDto.getTop())
-                    .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND))
-                    .getImage();
-            imagePaths.add(topImage);
+
+    private List<String> getRecommendItemUrlList(ResRecommendClotheDto clotheDto) {
+        List<String> imagePaths = new ArrayList<>();
+        List<Long> clotheIds = new ArrayList<>();
+
+        if (clotheDto.getTop() != null) clotheIds.add(clotheDto.getTop());
+        if (clotheDto.getBottom() != null) clotheIds.add(clotheDto.getBottom());
+        if (clotheDto.getShoes() != null) clotheIds.add(clotheDto.getShoes());
+        if (clotheDto.getAcc1() != null) clotheIds.add(clotheDto.getAcc1());
+        if (clotheDto.getOuter() != null) clotheIds.add(clotheDto.getOuter());
+        else if (clotheDto.getAcc2() != null) clotheIds.add(clotheDto.getAcc2());
+
+        List<Clothe> clothes = clotheRepository.findAllById(clotheIds);
+        if (clothes.size() != clotheIds.size()) {
+            log.error("Some clothes not found for IDs: {}", clotheIds);
+            throw new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND);
         }
 
-        if (clotheDto.getBottom() != null) {
-            String bottomImage = clotheRepository.findById(clotheDto.getBottom())
-                    .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND))
-                    .getImage();
-            imagePaths.add(bottomImage);
+        for (Clothe clothe : clothes) {
+            imagePaths.add(clothe.getImage());
         }
-
-        if (clotheDto.getShoes() != null) {
-            String shoesImage = clotheRepository.findById(clotheDto.getShoes())
-                    .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND))
-                    .getImage();
-            imagePaths.add(shoesImage);
-        }
-
-        if (clotheDto.getAcc1() != null) {
-            String acc1Image = clotheRepository.findById(clotheDto.getAcc1())
-                    .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND))
-                    .getImage();
-            imagePaths.add(acc1Image);
-        }
-        if (clotheDto.getOuter() != null) {
-            String outerImage = clotheRepository.findById(clotheDto.getOuter())
-                    .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND))
-                    .getImage();
-            imagePaths.add(outerImage);
-        } else if (clotheDto.getAcc2() != null) {
-            String acc2Image = clotheRepository.findById(clotheDto.getAcc2())
-                    .orElseThrow(() -> new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND))
-                    .getImage();
-            imagePaths.add(acc2Image);
-        }
-
         log.debug("Fetched image paths: {}", imagePaths);
-    } catch (Exception e) {
-        log.error("Failed to fetch clothing items for clotheDto: {}", clotheDto, e);
-        throw new BusinessException(ClotheErrorCode.CLOTHES_NOT_FOUND);
+
+        return imagePaths;
     }
-    return imagePaths;
-}
-
-
 
     private BufferedImage createRecommendImage(List<String> imagePaths) throws IOException {
         BufferedImage canvas = new BufferedImage(WRAPPER_WIDTH, WRAPPER_HEIGHT, BufferedImage.TYPE_INT_ARGB);
