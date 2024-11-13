@@ -33,10 +33,10 @@ public class S3ImageService {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(s3UploadDto.getContentLength());
         metadata.setContentType(s3UploadDto.getContentType());
-
-        s3Client.putObject(new PutObjectRequest(bucketName, fileName, s3UploadDto.getInputStream(), metadata)
+        String s3FilePath = "clothes/" + fileName;
+        s3Client.putObject(new PutObjectRequest(bucketName, s3FilePath, s3UploadDto.getInputStream(), metadata)
                 .withCannedAcl(CannedAccessControlList.PublicRead));
 
-        return s3Client.getUrl(bucketName, fileName).toString();
+        return s3Client.getUrl(bucketName, s3FilePath).toString();
     }
 }
