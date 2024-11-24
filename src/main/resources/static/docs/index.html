@@ -452,24 +452,21 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="_user_api">User API</h2>
+<h2 id="_root_endpoint">Root Endpoint</h2>
 <div class="sectionbody">
-<div class="sect2">
-<h3 id="_모든_유저_정보_가져오기rest_docs_테스트">모든 유저 정보 가져오기(rest docs 테스트)</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight nowrap"><code class="language-http" data-lang="http">GET /api/user HTTP/1.1
+<pre class="highlight nowrap"><code class="language-http" data-lang="http">GET / HTTP/1.1
 Host: localhost:8080</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight nowrap"><code class="language-http" data-lang="http">HTTP/1.1 200 OK
-Content-Type: application/json
-Content-Length: 71
-
-[{"id":null,"name":"John","age":30},{"id":null,"name":"Jane","age":25}]</code></pre>
-</div>
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Language: en</code></pre>
 </div>
 </div>
 </div>
@@ -478,7 +475,7 @@ Content-Length: 71
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-09-06 19:12:23 +0900
+Last updated 2024-11-25 06:31:12 +0900
 </div>
 </div>
 </body>

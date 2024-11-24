@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum CommonErrorCode implements ErrorCode {
     // 인증 관련 에러
+    NO_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "리프레쉬 토큰이 요청에 포함되지 않았습니다."),
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
     NOT_HAVE_ACCESS_TOKEN(HttpStatus.BAD_REQUEST, "엑세스 토큰이 없습니다."),
     NOT_VALID_TOKEN(HttpStatus.UNAUTHORIZED, "해당 토큰은 유효한 토큰이 아닙니다."),
@@ -14,6 +15,7 @@ public enum CommonErrorCode implements ErrorCode {
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "해당 refresh token은 존재하지 않습니다."),
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "해당 refresh token은 만료됐습니다."),
     NOT_ACCESS_TOKEN_TYPE(HttpStatus.UNAUTHORIZED, "해당 토큰은 ACCESS TOKEN이 아닙니다."),
+    NOT_REFRESH_TOKEN_TYPE(HttpStatus.UNAUTHORIZED, "해당 토큰은 REFRESH TOKEN이 아닙니다."),
     NO_PERMISSION(HttpStatus.UNAUTHORIZED, "권한 없음"),
     FORBIDDEN_ROLE(HttpStatus.FORBIDDEN, "해당 Role이 아닙니다."),
     UNAUTHORIZED_MEMBER(HttpStatus.UNAUTHORIZED, "회원 정보가 일치하지 않습니다."),

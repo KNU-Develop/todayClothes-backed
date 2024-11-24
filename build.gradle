@@ -69,19 +69,19 @@ ext {
 tasks.named('test') {
     outputs.dir snippetsDir
     useJUnitPlatform()
-    finalizedBy asciidoctor
-}
-
-tasks.register('copyDocs', Copy) {
-    from(layout.buildDirectory.dir("docs/asciidoc")) // buildDir 대신 layout.buildDirectory 사용
-    into("${projectDir}/src/main/resources/static/docs")
+    finalizedBy(tasks.named('asciidoctor'))
 }
 
 tasks.named('asciidoctor') {
     inputs.dir snippetsDir
     attributes 'snippets': snippetsDir
-    dependsOn tasks.named('test') // test 작업에 의존
-    finalizedBy(tasks.named('copyDocs')) // Asciidoctor 완료 후 copyDocs 실행
+    dependsOn tasks.named('test')
+    finalizedBy(tasks.named('copyDocs'))
+}
+
+tasks.register('copyDocs', Copy) {
+    from(layout.buildDirectory.dir("docs/asciidoc"))
+    into("${projectDir}/src/main/resources/static/docs")
 }
 
 tasks.build {

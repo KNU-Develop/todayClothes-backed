@@ -54,7 +54,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/","/env","/login").permitAll()
-                        .requestMatchers("index.html","/docs/index.html").permitAll()
+                        .requestMatchers("/index.html","/docs/index.html", "/static/**").permitAll()
                         .requestMatchers("/event/**").authenticated()
                         .requestMatchers("/clothes/**").authenticated()
                         .requestMatchers("/gpt").permitAll()

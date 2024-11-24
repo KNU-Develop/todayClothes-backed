@@ -3,6 +3,9 @@ package org.project.todayclothes.jwt;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.project.todayclothes.exception.Api_Response;
+import org.project.todayclothes.exception.code.CommonErrorCode;
+import org.project.todayclothes.utils.ApiResponseUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,26 +14,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 public class ReissueController {
-    private static final String REFRESH_TOKEN_NULL_MESSAGE = "Refresh token is null";
-    private static final String REFRESH_TOKEN_EXPIRED_MESSAGE = "Refresh token is expired";
-    private static final String INVALID_REFRESH_TOKEN_MESSAGE = "Invalid refresh token";
 
     private final ReissueService reissueService;
     private final JWTUtil jwtUtil;
 
     @PostMapping("/reissue")
-    public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Api_Response<Void>> reissue(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = reissueService.getRefreshToken(request);
         if (refreshToken == null) {
-            return new ResponseEntity<>(REFRESH_TOKEN_NULL_MESSAGE, HttpStatus.BAD_REQUEST);
-        }
-        if (!reissueService.validateRefreshToken(refreshToken)) {
-            return new ResponseEntity<>(REFRESH_TOKEN_EXPIRED_MESSAGE, HttpStatus.BAD_REQUEST);
+            return ApiResponseUtil.createErrorResponse(CommonErrorCode.NO_REFRESH_TOKEN);
         }
 
         if (!reissueService.isRefreshToken(refreshToken)) {
-            return new ResponseEntity<>(INVALID_REFRESH_TOKEN_MESSAGE, HttpStatus.BAD_REQUEST);
+            return ApiResponseUtil.createErrorResponse(CommonErrorCode.NOT_REFRESH_TOKEN_TYPE);
         }
+
+        if (!reissueService.validateRefreshToken(refreshToken)) {
+            return ApiResponseUtil.createErrorResponse(CommonErrorCode.REFRESH_TOKEN_EXPIRED);
+        }
+
+
 
         String newAccessToken = reissueService.createAccessToken(refreshToken);
         String newRefreshToken = reissueService.createRefreshToken(refreshToken);

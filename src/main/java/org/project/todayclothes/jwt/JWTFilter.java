@@ -22,7 +22,7 @@ public class JWTFilter extends OncePerRequestFilter {
     private final JWTUtil jwtUtil;
 
     private final Set<String> permitAllPaths = Set.of(
-            "/", "/env", "/login", "/index.html", "/docs/index.html", "/reissue", "/oauth2/*", "/login/oauth2/code/*", "/gpt"
+            "/", "/env", "/login", "/index.html", "/docs/index.html", "/reissue", "/oauth2/*", "/login/oauth2/code/*", "/gpt", "/static/**"
     );
 
     @Override
